@@ -114,6 +114,31 @@
     }
   },
   {
+    "name": "drm_import_package",
+    "description": "Import an existing .drm file into the signed-in account that issued it. Read its UTF-8 text and pass it as package. Retrying the same file returns the same score ID and URL.",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "package"
+      ],
+      "properties": {
+        "package": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 921602,
+          "description": "The DRM1 package text from the user-selected .drm file."
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
     "name": "drm_package_score",
     "description": "Create an encrypted, account-bound .drm file without adding it to the library. Save the returned package string as UTF-8 to filename. For direct upload use drm_publish_score.",
     "inputSchema": {
