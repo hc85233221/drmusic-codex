@@ -275,6 +275,11 @@
               "maxLength": 180,
               "minLength": 1
             },
+            "youtubeUrl": {
+              "type": "string",
+              "maxLength": 4096,
+              "description": "Optional YouTube video URL. Include only after matching both song and artist. Leave blank or omit when unverified."
+            },
             "artist": {
               "type": "string",
               "maxLength": 180
@@ -506,6 +511,11 @@
               "maxLength": 180,
               "minLength": 1
             },
+            "youtubeUrl": {
+              "type": "string",
+              "maxLength": 4096,
+              "description": "Optional YouTube video URL. Include only after matching both song and artist. Leave blank or omit when unverified."
+            },
             "artist": {
               "type": "string",
               "maxLength": 180
@@ -685,6 +695,37 @@
       "readOnlyHint": false,
       "destructiveHint": false,
       "openWorldHint": false
+    }
+  },
+  {
+    "name": "drm_set_guitar_video",
+    "description": "Set or replace the music video on one owned guitar chart using its existing ID. Verify the artist and song first. To remove the link pass null. Changing the video affects its shared view.",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "url"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4096
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true
     }
   },
   {
