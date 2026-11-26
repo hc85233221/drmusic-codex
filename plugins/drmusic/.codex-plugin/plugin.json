@@ -1,15 +1,15 @@
 {
   "name": "drmusic",
-  "version": "1.2.1",
-  "description": "將鋼琴譜、吉他和弦歌詞譜及帳號專用的 .drm、.drmg 檔匯入 DrMusic。",
+  "version": "1.3.0",
+  "description": "匯入鋼琴與吉他譜，產生雙手簡譜，並將建議指法與左手和弦寫入私人練習筆記。",
   "homepage": "https://drmusic.rockdawn.chatgpt.site",
   "author": {
     "name": "DrMusic"
   },
   "interface": {
     "displayName": "DrMusic",
-    "shortDescription": "用 AI 匯入鋼琴譜與吉他和弦譜",
-    "longDescription": "配對自己的 DrMusic 帳號後，請 AI 轉錄鋼琴雙手音符或吉他和弦與歌詞，保存私人原譜，並簽發或匯入帳號專用樂譜。",
+    "shortDescription": "用 AI 匯入樂譜、轉簡譜與整理練習筆記",
+    "longDescription": "匯入鋼琴譜與吉他和弦譜，製作帳號專用樂譜檔。已存的鋼琴譜可轉成可列印簡譜，也可選擇將建議指法或左手和弦存入逐拍私人筆記。",
     "developerName": "DrMusic",
     "category": "Education & Research",
     "capabilities": [
