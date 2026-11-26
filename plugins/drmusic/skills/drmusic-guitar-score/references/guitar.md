@@ -6,6 +6,7 @@
 type GuitarScore = {
   kind: 'guitar'
   title: string
+  youtubeUrl?: string
   artist?: string
   composer?: string
   lyricist?: string
@@ -29,6 +30,7 @@ type GuitarScore = {
 }
 ```
 
+- `youtubeUrl` 是選填的 YouTube 單支影片網址，位於 score 頂層，可使用含影片 ID 的 watch 網址或 youtu.be 短網址。播放清單、頻道與搜尋結果頁無法指定單支影片。沒有可靠網址時省略，既有 .drmg 可原樣匯入。
 - `originalKey` 記原唱的原調，`chartKey` 記譜面和弦的按法調。保留原譜拼字，例如 `B♭`、`G#m`、`Bb/D`；只有來源明示才填入。速度為 10–400 BPM 的整數，Capo 為 0–24 格的整數。拍號分子為 1–32，分母可用 1、2、4、8、16 或 32。缺資料就省略欄位，Capo 0 代表已知不夾。
 - `at` 為該列原文從零起算的 **Unicode code point 邊界**，含空格，範圍為 0 至 `Array.from(text).length`，尾端可放和弦。各陣列按位置非遞減排列，同位置保留輸入順序。文字不修剪、不正規化。純和弦列可用空字串、依序放在 0，或以空格和小節線記錄版面間距。索引不是拍點。
 - `duration` 僅在譜面標明時填，單位為四分音符拍，正有限數。沒有旋律的譜不含 MIDI 音符、左右手或小節音符陣列。
