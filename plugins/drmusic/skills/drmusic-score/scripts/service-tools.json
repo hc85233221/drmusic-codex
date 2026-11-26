@@ -109,8 +109,8 @@
     "annotations": {
       "readOnlyHint": false,
       "destructiveHint": false,
-      "idempotentHint": true,
-      "openWorldHint": false
+      "openWorldHint": false,
+      "idempotentHint": true
     }
   },
   {
@@ -134,8 +134,8 @@
     "annotations": {
       "readOnlyHint": false,
       "destructiveHint": false,
-      "idempotentHint": true,
-      "openWorldHint": false
+      "openWorldHint": false,
+      "idempotentHint": true
     }
   },
   {
@@ -237,6 +237,442 @@
               }
             }
           }
+        },
+        "requestId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+          "description": "Reuse across retries for the same transcription; omit to deduplicate by score content."
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "drm_publish_guitar_score",
+    "description": "Save a guitar chord chart to the signed-in DrMusic account. Keep written chord spelling, original and chart keys, lyrics, repeats, strumming marks and exact Unicode code point anchors. Omit unknown tempo, meter, capo or duration. Return the URL to open the chart.",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "score"
+      ],
+      "properties": {
+        "score": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "guitar"
+              ]
+            },
+            "title": {
+              "type": "string",
+              "maxLength": 180,
+              "minLength": 1
+            },
+            "artist": {
+              "type": "string",
+              "maxLength": 180
+            },
+            "composer": {
+              "type": "string",
+              "maxLength": 180
+            },
+            "lyricist": {
+              "type": "string",
+              "maxLength": 180
+            },
+            "arranger": {
+              "type": "string",
+              "maxLength": 180
+            },
+            "originalKey": {
+              "type": "string",
+              "maxLength": 60,
+              "description": "Original sounding key, as printed."
+            },
+            "chartKey": {
+              "type": "string",
+              "maxLength": 60,
+              "description": "Key of the written chord shapes, as printed."
+            },
+            "bpm": {
+              "type": "integer",
+              "minimum": 10,
+              "maximum": 400
+            },
+            "timeSignature": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "integer"
+              },
+              "description": "[numerator 1..32, denominator 1/2/4/8/16/32]. Omit when unmarked."
+            },
+            "capo": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 24
+            },
+            "annotations": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 512
+              },
+              "maxItems": 64
+            },
+            "sections": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "maxLength": 180
+                  },
+                  "annotations": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "maxLength": 512
+                    },
+                    "maxItems": 64
+                  },
+                  "lines": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "lyric",
+                            "instrumental",
+                            "annotation"
+                          ]
+                        },
+                        "text": {
+                          "type": "string",
+                          "maxLength": 2048
+                        },
+                        "chords": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "at": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 2048,
+                                "description": "Zero-based Unicode code point boundary in this exact line, including spaces. End of line is allowed. Keep equal offsets in source order."
+                              },
+                              "symbol": {
+                                "type": "string",
+                                "maxLength": 60,
+                                "minLength": 1
+                              },
+                              "duration": {
+                                "type": "number",
+                                "exclusiveMinimum": 0,
+                                "description": "Quarter-note beats only when stated on the chart."
+                              }
+                            },
+                            "required": [
+                              "at",
+                              "symbol"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "maxItems": 16000
+                        },
+                        "annotations": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "at": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 2048,
+                                "description": "Zero-based Unicode code point boundary in this exact line, including spaces. End of line is allowed. Keep equal offsets in source order."
+                              },
+                              "text": {
+                                "type": "string",
+                                "maxLength": 512
+                              }
+                            },
+                            "required": [
+                              "at",
+                              "text"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "maxItems": 64
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "text",
+                        "chords"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "maxItems": 2048
+                  }
+                },
+                "required": [
+                  "lines"
+                ],
+                "additionalProperties": false
+              },
+              "maxItems": 128,
+              "minItems": 1
+            }
+          },
+          "required": [
+            "kind",
+            "title",
+            "sections"
+          ],
+          "additionalProperties": false
+        },
+        "requestId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+          "description": "Reuse across retries for the same transcription; omit to deduplicate by score content."
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "drm_import_guitar_package",
+    "description": "Import an existing .drmg file into the signed-in account that issued it. Read its UTF-8 text and pass it as package. Retrying the same file returns the same score ID and URL.",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "package"
+      ],
+      "properties": {
+        "package": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 921602,
+          "description": "The DRMG1 package text from the user-selected .drmg file."
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "drm_package_guitar_score",
+    "description": "Create an encrypted, account-bound .drmg file without adding it to the library. Save the returned package string as UTF-8 to filename. For direct upload use drm_publish_guitar_score.",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "score"
+      ],
+      "properties": {
+        "score": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "guitar"
+              ]
+            },
+            "title": {
+              "type": "string",
+              "maxLength": 180,
+              "minLength": 1
+            },
+            "artist": {
+              "type": "string",
+              "maxLength": 180
+            },
+            "composer": {
+              "type": "string",
+              "maxLength": 180
+            },
+            "lyricist": {
+              "type": "string",
+              "maxLength": 180
+            },
+            "arranger": {
+              "type": "string",
+              "maxLength": 180
+            },
+            "originalKey": {
+              "type": "string",
+              "maxLength": 60,
+              "description": "Original sounding key, as printed."
+            },
+            "chartKey": {
+              "type": "string",
+              "maxLength": 60,
+              "description": "Key of the written chord shapes, as printed."
+            },
+            "bpm": {
+              "type": "integer",
+              "minimum": 10,
+              "maximum": 400
+            },
+            "timeSignature": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "integer"
+              },
+              "description": "[numerator 1..32, denominator 1/2/4/8/16/32]. Omit when unmarked."
+            },
+            "capo": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 24
+            },
+            "annotations": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 512
+              },
+              "maxItems": 64
+            },
+            "sections": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "maxLength": 180
+                  },
+                  "annotations": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "maxLength": 512
+                    },
+                    "maxItems": 64
+                  },
+                  "lines": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "lyric",
+                            "instrumental",
+                            "annotation"
+                          ]
+                        },
+                        "text": {
+                          "type": "string",
+                          "maxLength": 2048
+                        },
+                        "chords": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "at": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 2048,
+                                "description": "Zero-based Unicode code point boundary in this exact line, including spaces. End of line is allowed. Keep equal offsets in source order."
+                              },
+                              "symbol": {
+                                "type": "string",
+                                "maxLength": 60,
+                                "minLength": 1
+                              },
+                              "duration": {
+                                "type": "number",
+                                "exclusiveMinimum": 0,
+                                "description": "Quarter-note beats only when stated on the chart."
+                              }
+                            },
+                            "required": [
+                              "at",
+                              "symbol"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "maxItems": 16000
+                        },
+                        "annotations": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "at": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 2048,
+                                "description": "Zero-based Unicode code point boundary in this exact line, including spaces. End of line is allowed. Keep equal offsets in source order."
+                              },
+                              "text": {
+                                "type": "string",
+                                "maxLength": 512
+                              }
+                            },
+                            "required": [
+                              "at",
+                              "text"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "maxItems": 64
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "text",
+                        "chords"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "maxItems": 2048
+                  }
+                },
+                "required": [
+                  "lines"
+                ],
+                "additionalProperties": false
+              },
+              "maxItems": 128,
+              "minItems": 1
+            }
+          },
+          "required": [
+            "kind",
+            "title",
+            "sections"
+          ],
+          "additionalProperties": false
         },
         "requestId": {
           "type": "string",

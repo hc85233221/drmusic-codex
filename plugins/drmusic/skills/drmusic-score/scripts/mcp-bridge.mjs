@@ -121,9 +121,9 @@ async function handle(message) {
           ? params.protocolVersion
           : "2025-11-25",
         capabilities: { tools: {} },
-        serverInfo: { name: "DrMusic", version: "1.1.0" },
+        serverInfo: { name: "DrMusic", version: "1.2.0" },
         instructions:
-          "Use drm_connect to pair. Transcribe pitches, rests, both hands and timing before publishing photos or PDFs. Import an existing .drm using drm_import_package with the complete trimmed UTF-8 package.",
+          "Use drm_connect to pair. For piano use drmusic-score. For guitar chord sheets and .drmg use drmusic-guitar-score and the guitar tools. Import an existing .drm using drm_import_package with the complete trimmed UTF-8 package.",
       },
     });
   }
