@@ -1,0 +1,20 @@
+{
+  "name": "drmusic-local",
+  "interface": {
+    "displayName": "DrMusic"
+  },
+  "plugins": [
+    {
+      "name": "drmusic",
+      "source": {
+        "source": "local",
+        "path": "./plugins/drmusic"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Education & Research"
+    }
+  ]
+}
