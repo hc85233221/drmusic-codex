@@ -1,6 +1,6 @@
 # DrMusic
 
-外掛 1.2.0 包含兩個 Skill。鋼琴譜用 `drmusic-score` 轉錄雙手音符，使用 .drm 檔。吉他和弦歌詞譜用 `drmusic-guitar-score`，保留和弦與歌詞位置、調性及段落，使用 .drmg 檔。兩種檔案都由 DrMusic 簽發，匯入時須使用原帳號。執行本機橋接器需要 Node.js 20 以上。
+外掛 1.2.1 包含兩個 Skill。鋼琴譜用 `drmusic-score` 轉錄雙手音符，使用 .drm 檔。吉他和弦歌詞譜用 `drmusic-guitar-score`，保留和弦與歌詞位置、調性及段落，使用 .drmg 檔。兩種檔案都由 DrMusic 簽發，匯入時須使用原帳號。執行本機橋接器需要 Node.js 20 以上。
 
 ## 安裝到 Codex
 
@@ -18,6 +18,6 @@
 
 ## 使用吉他譜
 
-附上吉他譜並說「保留原調、和弦對位及段落，製作吉他檔並匯入我的樂譜室」。要匯入現成吉他檔可直接附上 .drmg。單獨要求製檔時，AI 可以先交付檔案，日後再匯入。
+附上吉他譜並說「保留原調、和弦對位及段落，製作吉他檔並匯入我的樂譜室」。要匯入現成吉他檔可直接附上 .drmg。可同時附上對應的 YouTube 影片網址。AI 自行尋找影片時會核對曲名與演出者，沒有可靠來源仍可匯入，曲主可稍後補上。單獨要求製檔時，AI 可以先交付檔案，日後再匯入。
 
-本機工具清單應包含 drm_connect、五個既有服務工具，以及 drm_package_guitar_score、drm_import_guitar_package、drm_publish_guitar_score。GitHub 套件更新後，本機和遠端服務都須支援對應工具才能完成匯入。
+本機工具清單應包含 drm_connect、五個既有服務工具，以及 drm_package_guitar_score、drm_import_guitar_package、drm_publish_guitar_score 和 drm_set_guitar_video。曲主要透過 AI 更換既有曲目的影片，可用最後一項工具傳入曲目 ID 與已確認的網址。GitHub 套件更新後，本機和遠端服務都須支援對應工具才能完成匯入。
