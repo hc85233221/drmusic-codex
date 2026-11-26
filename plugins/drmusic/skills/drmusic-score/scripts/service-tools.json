@@ -699,7 +699,7 @@
   },
   {
     "name": "drm_get_piano_score",
-    "description": "Read one owned piano score with its original key when provided and all written notes. Each page has up to 256 notes. Follow next with the same id and revision until null. Append the first measure at noteOffset when continuing inside a dense measure.",
+    "description": "Read one owned piano score with its original key when provided and all written notes. numberedUrl downloads printable numbered notation when opened by the owner. If needed append &key= with the URL-encoded user-confirmed key, e.g. Bb major. Each page has up to 256 notes. Follow next with the same id and revision until null. Append the first measure at noteOffset when continuing inside a dense measure.",
     "inputSchema": {
       "type": "object",
       "additionalProperties": false,
