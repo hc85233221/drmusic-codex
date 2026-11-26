@@ -17,7 +17,9 @@ description: 將 DrMusic 雙手鋼琴譜轉為可列印的首調數字簡譜、�
 
 ## 雙手簡譜
 
-從本 Skill 資料夾執行下列命令，使用已重組的私人譜檔產生可離線列印的 HTML。若執行環境無法執行 Node.js，交付此命令及合併後的私人 JSON，說明 HTML 尚待產生。
+曲庫內的譜可直接交付 `drm_get_piano_score` 第一頁傳回的 `numberedUrl`。曲主用已登入的 DrMusic 瀏覽器開啟即可下載並列印該版本的完整雙手簡譜。只需下載連結時，第一頁就足夠。原譜調性未明時，確認後將 `key` 加為網址參數，例如 `&key=Bb%20major`。
+
+使用者提供本機 JSON、需要直接交付檔案，或網站因排版過大回傳 413 時，從本 Skill 資料夾執行下列命令。曲庫來源須先依上節合併完整的私人譜檔。
 
 ```sh
 node scripts/numbered.mjs "/path/to/score.json" -o "/path/to/numbered.html"
