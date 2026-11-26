@@ -1,6 +1,6 @@
 # DrMusic
 
-外掛 1.3.0 包含三個 Skill。鋼琴譜用 `drmusic-score` 轉錄雙手音符，使用 .drm 檔。吉他和弦歌詞譜用 `drmusic-guitar-score`，保留和弦與歌詞位置、調性及段落，使用 .drmg 檔。兩種檔案都由 DrMusic 簽發，匯入時須使用原帳號。執行本機橋接器需要 Node.js 20 以上。
+外掛 1.3.1 包含三個 Skill。鋼琴譜用 `drmusic-score` 轉錄雙手音符，使用 .drm 檔。吉他和弦歌詞譜用 `drmusic-guitar-score`，保留和弦與歌詞位置、調性及段落，使用 .drmg 檔。兩種檔案都由 DrMusic 簽發，匯入時須使用原帳號。執行本機橋接器需要 Node.js 20 以上。
 
 ## 安裝到 Codex
 
@@ -18,7 +18,7 @@
 
 ## 鋼琴練習
 
-在 Codex 指定 `drmusic-piano-study`，或在 Claude Code 輸入 `/drmusic-piano-study`。提供自己的 DrMusic 曲目連結，例如「把這首鋼琴譜轉成雙手簡譜」或「只把建議指法寫入第 1 至 4 小節備忘錄」。也可以只要求左手和弦，或一次要求多項。鋼琴練習使用 drm_get_piano_score 讀譜，使用 drm_annotate_piano_study 寫入選取的建議。
+在 Codex 輸入 `$drmusic:drmusic-piano-study`，或在 Claude Code 輸入 `/drmusic-piano-study`。提供自己的 DrMusic 曲目連結，例如「把這首鋼琴譜轉成雙手簡譜」或「只把建議指法寫入第 1 至 4 小節備忘錄」。也可以只要求左手和弦，或一次要求多項。鋼琴練習使用 drm_get_piano_score 讀譜，使用 drm_annotate_piano_study 寫入選取的建議。
 
 ## 使用吉他譜
 
