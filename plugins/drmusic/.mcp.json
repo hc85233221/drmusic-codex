@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "drmusic": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${PLUGIN_ROOT}/skills/drmusic-score/scripts/mcp-bridge.mjs"
+      ],
+      "cwd": "${PLUGIN_ROOT}"
+    }
+  }
+}
