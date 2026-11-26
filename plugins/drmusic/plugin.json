@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "drmusic",
-  "version": "1.0.0",
-  "description": "將鋼琴譜照片轉錄成可以播放的音符，上傳至自己的 DrMusic 樂譜室。",
+  "version": "1.1.0",
+  "description": "透過 AI 將鋼琴譜照片、PDF 或已有的 .drm 檔匯入自己的 DrMusic 樂譜室。",
   "homepage": "https://drmusic.rockdawn.chatgpt.site",
   "author": {
     "name": "DrMusic"
@@ -11,8 +11,8 @@
     "com.openai": {
       "interface": {
         "displayName": "DrMusic",
-        "shortDescription": "用照片匯入自己的可播放樂譜",
-        "longDescription": "從你的鋼琴譜照片或 PDF 轉錄雙手音符，配對已登入的 DrMusic 帳號，匯入可播放的樂譜與原圖。",
+        "shortDescription": "交給 AI 匯入可播放的鋼琴譜",
+        "longDescription": "配對自己的 DrMusic 帳號後，可請 AI 從鋼琴譜照片或 PDF 轉錄雙手音符並儲存原譜，也可直接匯入帳號專用的 .drm 檔。",
         "developerName": "DrMusic",
         "category": "Education & Research",
         "capabilities": [
