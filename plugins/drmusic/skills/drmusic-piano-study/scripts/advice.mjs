@@ -6,6 +6,7 @@ const BLACK = new Set([1, 3, 6, 8, 10]);
 const SHARPS = 'C C♯ D D♯ E F F♯ G G♯ A A♯ B'.split(' ');
 const FLATS = 'C D♭ D E♭ E F G♭ G A♭ A B♭ B'.split(' ');
 const MIXED = 'C C♯ D E♭ E F F♯ G A♭ A B♭ B'.split(' ');
+const NATURAL_PC = {C:0,D:2,E:4,F:5,G:7,A:9,B:11};
 function spellings(key = '') {
   if (/[♭b降]/.test(key) || /^(F|Dm)(?:$|\s)/i.test(key)) return FLATS;
   if (/[♯#升]/.test(key) || /^(G|D|A|E|B|Em|Bm)(?:$|\s)/.test(key)) return SHARPS;
@@ -86,7 +87,10 @@ function movement(previous, current, direction, gap) {
     } else if (distance <= 5 && (last.f===1 || note.f===1)) {
       const over = Math.max(last.f,note.f);
       const thumbKey = last.f===1 ? last.midi : note.midi;
-      cost += 1.35 + (over===3 ? 0 : over===4 ? .45 : 1.9) + (BLACK.has(thumbKey%12) ? 1.2 : 0);
+      const outerKey = last.f===1 ? note.midi : last.midi;
+      const blackToWhite = BLACK.has(outerKey%12) && !BLACK.has(thumbKey%12);
+      const crossingCost = over===3 ? 0 : over===4 ? .45 : over===2 && blackToWhite ? .1 : 1.9;
+      cost += 1.35 + crossingCost + (BLACK.has(thumbKey%12) ? 1.2 : 0) - (blackToWhite ? .85 : 0);
     } else cost += distance > 5 ? 2.8 : 5;
   }
   return cost/current.length * (gap > .25 ? .55 : 1);
@@ -176,7 +180,7 @@ function parsePrinted(symbol) {
   const match=/^([A-G])([#b]?)(maj7|m7b5|dim7|m7|7|min|m|dim|aug|sus[24]|maj|)(?:\/([A-G])([#b]?))?$/.exec(
     symbol.replaceAll('♯','#').replaceAll('♭','b').replaceAll('ø7','m7b5').replaceAll('°','dim'));
   if (!match) return null;
-  const pc=(letter,acc)=>(12+'C D EF G A B'.indexOf(letter)+(acc==='#'?1:acc==='b'?-1:0))%12;
+  const pc=(letter,acc)=>(12+NATURAL_PC[letter]+(acc==='#'?1:acc==='b'?-1:0))%12;
   const [,root,acc,q,bass,bassAcc]=match;
   const quality=({maj:'',min:'m',m7b5:'m7♭5'})[q] ?? q;
   return {chord:CHORDS.find(c=>c.root===pc(root,acc) && c.quality===quality),bass:bass?pc(bass,bassAcc):null};
@@ -271,13 +275,14 @@ function inferChunk(frames, names, choices) {
     const written=i===0?frames[0].printed:null;
     const inferred=c && (names[c.root]+c.quality+(bassPC!=null && c.root!==bassPC?'/'+names[bassPC]:''));
     const suspended=c?.quality.startsWith('sus');
+    const thirdLabel=suspended && [3,4].some(i=>s.mask & (1<<((c.root+i)%12)))?'三音較弱':'缺三音';
     let text;
     if (written) {
       const parsed=parsePrinted(written);
       const matches=parsed && c && [c,...s.alternatives].some(candidate=>candidate.mask===parsed.chord?.mask) &&
         (parsed.bass==null || parsed.bass===bassPC);
       if (matches) text='原譜 '+written+'（左手音列相符）';
-      else if (suspended) text='原譜 '+written+'；左手呈 '+inferred+' 音型（缺三音）';
+      else if (suspended) text='原譜 '+written+'；左手呈 '+inferred+' 音型（'+thirdLabel+'）';
       else if (!parsed || !c || s.ambiguous) text='原譜 '+written+'（左手音列不足以核實）';
       else text='原譜 '+written+'；左手較接近 '+inferred+'，請核對';
     } else if (!c) {
@@ -285,7 +290,7 @@ function inferChunk(frames, names, choices) {
       text=tones.length<=2?'左手僅 '+tones.join('、')+' 音級，和弦未定':'左手和弦未定（音列不足或混合）';
     }
     else if (s.ambiguous) text='左手和弦未定（'+names[c.root]+c.quality+' 等同音組合）';
-    else if (suspended) text='左手音型 '+inferred+'（缺三音，完整和弦未定）';
+    else if (suspended) text='左手音型 '+inferred+'（'+thirdLabel+'，完整和弦未定）';
     else text='左手推測 '+inferred;
     return {at:s.at,text};
   });
