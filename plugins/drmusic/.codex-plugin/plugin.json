@@ -1,6 +1,6 @@
 {
   "name": "drmusic",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "將鋼琴譜、吉他和弦歌詞譜及帳號專用的 .drm、.drmg 檔匯入 DrMusic。",
   "homepage": "https://drmusic.rockdawn.chatgpt.site",
   "author": {
