@@ -3,7 +3,9 @@ name: drmusic-score
 description: 將使用者指定的鋼琴譜照片或 PDF 逐小節轉錄為可播放音符，匯入使用者自己的 DrMusic 樂譜室。也可透過 MCP 匯入既有的 .drm 檔，或製作帳號專用的 .drm 檔。
 ---
 
-# DrMusic 樂譜匯入
+# DrMusic 鋼琴譜匯入
+
+吉他和弦歌詞譜或 .drmg 檔請使用 drmusic-guitar-score。
 
 使用已連接的 DrMusic 工具。第一次使用外部 MCP 橋接器時，呼叫 `drm_connect`，讓使用者在同一台電腦的配對頁確認自己的帳號。Codex 或 ChatGPT 的 Sites 外掛直接使用登入身分。
 
