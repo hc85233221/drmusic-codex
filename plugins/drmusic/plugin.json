@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "drmusic",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "匯入鋼琴與吉他譜，將鋼琴譜轉成雙手簡譜，存入私人曲庫或下載列印。",
   "homepage": "https://drmusic.rockdawn.chatgpt.site",
   "author": {
@@ -12,7 +12,7 @@
       "interface": {
         "displayName": "DrMusic",
         "shortDescription": "匯入鋼琴與吉他譜，把雙手簡譜存入曲庫或列印",
-        "longDescription": "匯入鋼琴譜與吉他和弦譜，製作帳號專用樂譜檔。曲庫內的鋼琴譜可另存為一份私人雙手簡譜，也可下載 HTML 列印。",
+        "longDescription": "匯入鋼琴譜與吉他和弦譜，製作帳號專用樂譜檔。曲庫內的鋼琴譜可另存為私人簡譜，依原稿拍位讀取和弦與歌詞，或切換完整雙手下載列印。",
         "developerName": "DrMusic",
         "category": "Education & Research",
         "capabilities": [
