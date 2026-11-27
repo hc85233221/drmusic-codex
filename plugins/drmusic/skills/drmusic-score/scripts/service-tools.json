@@ -130,7 +130,7 @@
                   "notationMarks": {
                     "type": "array",
                     "maxItems": 256,
-                    "description": "Source-verified written marks. tie and slur require a later end anchor with a one-based absolute measure. A tie requires equal MIDI at both anchors. Times are local quarter beats.",
+                    "description": "Source-verified written marks. tie, slur, crescendo, decrescendo and pedal require a later end anchor with a one-based absolute measure. For crescendo, decrescendo and sustain pedal only, end.start can equal the length of its measure, including the final barline. A tie requires equal MIDI at both anchors. Times are local quarter beats.",
                     "items": {
                       "type": "object",
                       "required": [
@@ -143,6 +143,9 @@
                         "type": {
                           "type": "string",
                           "enum": [
+                            "crescendo",
+                            "decrescendo",
+                            "pedal",
                             "accent",
                             "marcato",
                             "espressivo",
@@ -536,7 +539,7 @@
                   "notationMarks": {
                     "type": "array",
                     "maxItems": 256,
-                    "description": "Source-verified written marks. tie and slur require a later end anchor with a one-based absolute measure. A tie requires equal MIDI at both anchors. Times are local quarter beats.",
+                    "description": "Source-verified written marks. tie, slur, crescendo, decrescendo and pedal require a later end anchor with a one-based absolute measure. For crescendo, decrescendo and sustain pedal only, end.start can equal the length of its measure, including the final barline. A tie requires equal MIDI at both anchors. Times are local quarter beats.",
                     "items": {
                       "type": "object",
                       "required": [
@@ -549,6 +552,9 @@
                         "type": {
                           "type": "string",
                           "enum": [
+                            "crescendo",
+                            "decrescendo",
+                            "pedal",
                             "accent",
                             "marcato",
                             "espressivo",
@@ -2320,7 +2326,7 @@
               "notationMarks": {
                 "type": "array",
                 "maxItems": 256,
-                "description": "Source-verified written marks. tie and slur require a later end anchor with a one-based absolute measure. A tie requires equal MIDI at both anchors. Times are local quarter beats.",
+                "description": "Source-verified written marks. tie, slur, crescendo, decrescendo and pedal require a later end anchor with a one-based absolute measure. For crescendo, decrescendo and sustain pedal only, end.start can equal the length of its measure, including the final barline. A tie requires equal MIDI at both anchors. Times are local quarter beats.",
                 "items": {
                   "type": "object",
                   "required": [
@@ -2333,6 +2339,9 @@
                     "type": {
                       "type": "string",
                       "enum": [
+                        "crescendo",
+                        "decrescendo",
+                        "pedal",
                         "accent",
                         "marcato",
                         "espressivo",
