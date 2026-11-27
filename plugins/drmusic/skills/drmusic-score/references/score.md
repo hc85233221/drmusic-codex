@@ -6,6 +6,8 @@
 
 原件另有排版用音符時，可用每小節的 notationNotes 保存書寫譜，播放繼續使用 notes。書寫音同樣使用 midi、hand、start、duration，另可保留從 0 起算的整數 voice。書寫時值限定在小節內，跨小節按原譜分段。有書寫資料才填此欄；顯式空陣列表示此小節譜面全休止。
 
+若原稿印有和弦或歌詞，可在小節加入 `chords: [{start,symbol}]`、`lyrics: [{start,text,verse?}]`。起點以本小節的四分音符拍數計算，須小於小節的實際長度。保留原稿的和弦拼法、歌詞文字及同拍順序。分段歌詞以從 1 起算的 verse 對齊，省略即第一段。只填能從來源核對的內容。
+
 例如下列自創單小節用左右手同時起音，右手第二拍再彈 E。
 ```json
 {"title":"一小節試音","bpm":84,"timeSignature":[2,4],"measures":[{"notes":[{"midi":48,"start":0,"duration":2,"hand":"left"},{"midi":60,"start":0,"duration":1,"hand":"right"},{"midi":64,"start":1,"duration":1,"hand":"right"}]}]}
