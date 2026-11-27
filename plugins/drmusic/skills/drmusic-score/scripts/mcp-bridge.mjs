@@ -121,7 +121,7 @@ async function handle(message) {
           ? params.protocolVersion
           : "2025-11-25",
         capabilities: { tools: {} },
-        serverInfo: { name: "DrMusic", version: "1.5.0" },
+        serverInfo: { name: "DrMusic", version: "1.6.0" },
         instructions:
           "Use drm_connect to pair. For piano transcription use drmusic-score. For printable two-hand numbered notation or saving a private numbered score use drmusic-piano-study. For guitar chord sheets and .drmg use drmusic-guitar-score and the guitar tools. Import an existing .drm using drm_import_package with the complete trimmed UTF-8 package.",
       },
@@ -163,7 +163,7 @@ async function handle(message) {
       () =>
         finish(
           toolResult(
-            "未收到網站回覆。請先核對曲庫，再以相同 requestId 重試。",
+            "未收到網站回覆。請先核對曲庫，再以原本的參數重試。",
             true,
           ),
         ),
