@@ -97,9 +97,14 @@ function makeVoices(score, barLength) {
   return hands;
 }
 
-/** Each row contains contiguous timed events within one bar. Null pitches mean rest. */
+/**
+ * Each row contains contiguous timed events within one bar. Null pitches mean rest.
+ * @param {{title: string, composer?: string, key?: string, keySignature?: string,
+ * kind?: string, bpm: number, timeSignature: number[], measures: {notes: {
+ * midi: number, start: number, duration: number, hand: string}[]}[]}} score
+ */
 export function buildNumberedScore(score, { key: override } = {}) {
-  if (!score || (score.kind && score.kind !== 'piano') || !Array.isArray(score.measures) || !score.measures.length)
+  if (!score || (score.kind && score.kind !== 'piano' && score.kind !== 'numbered') || !Array.isArray(score.measures) || !score.measures.length)
     throw new Error('需要含 measures 的鋼琴譜 JSON。');
   const sourceKey = typeof score.key === 'string' && score.key.trim() ? score.key : score.keySignature;
   const key = parseKey(override ?? sourceKey);
@@ -157,7 +162,7 @@ function noteGlyph({ degree, alter, octave }) {
   return `<span class="pitch"><span class="dots above">${octave > 0 ? dots : ''}</span><span>${accidental(alter)}${degree}</span><span class="dots below">${octave < 0 ? dots : ''}</span></span>`;
 }
 
-function cell(event, start, end, span) {
+function cell(event, start, end, span, interactive) {
   const duration = snap(end - start);
   const { lines, dotted } = rhythm(duration);
   const tieIn = event.pitches && (event.tieIn || start > event.start);
@@ -166,7 +171,7 @@ function cell(event, start, end, span) {
   const chord = (event.pitches?.length ?? 0) > 1;
   const pitchClass = chord ? (event.pitches.length > 6 ? ' chord wide' : ' chord') : '';
   const dashes = Number.isInteger(duration) && duration >= 2 && duration <= 4 ? '–'.repeat(duration - 1) : '';
-  return `<td colspan="${span}"><div class="event">
+  return `<td colspan="${span}"${interactive ? ` data-offset="${start}"` : ''}><div class="event">
     <div class="symbols">${tieIn ? '<span class="tie" aria-label="承前延音">⌒</span>' : ''}
     <span class="group"><span class="pitches${pitchClass}">${notes}</span>${'<i class="beam"></i>'.repeat(lines)}</span>${dotted ? '<b class="augment">·</b>' : ''}${dashes ? '<span class="dashes">' + dashes + '</span>' : ''}
     ${tieOut ? '<span class="tie" aria-label="延至下一段">⌒</span>' : ''}</div>
@@ -200,7 +205,7 @@ export function renderNumberedBar(bar, number, barLength, { maxColumns = 8, inte
       for (let pos = first; pos < last;) {
         const event = voice.events[voice.index];
         const end = Math.min(last, indices.get(event.end));
-        parts.push(cell(event, stops[pos], stops[end], end - pos));
+        parts.push(cell(event, stops[pos], stops[end], end - pos, interactive));
         if (stops[end] === event.end) voice.index++;
         pos = end;
       }
