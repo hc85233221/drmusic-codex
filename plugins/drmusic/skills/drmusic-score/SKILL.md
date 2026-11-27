@@ -1,6 +1,6 @@
 ---
 name: drmusic-score
-description: 將使用者指定的鋼琴譜照片或 PDF 逐小節轉錄為可播放音符，匯入使用者自己的 DrMusic 樂譜室。也可透過 MCP 匯入既有的 .drm 檔，或製作帳號專用的 .drm 檔。
+description: 將使用者指定的鋼琴譜照片或 PDF 逐小節轉錄為可播放音符，匯入使用者自己的 DrMusic 樂譜室。可在既有鋼琴譜補回原稿書寫音，透過 MCP 匯入既有的 .drm 檔，或製作帳號專用的 .drm 檔。
 ---
 
 # DrMusic 鋼琴譜匯入
@@ -13,9 +13,15 @@ description: 將使用者指定的鋼琴譜照片或 PDF 逐小節轉錄為可�
 
 1. 讀取這次指定的所有譜頁。依原譜核對譜號、調號、拍號、速度、左右手、和弦、延音與反覆。影像模糊時指出頁碼、小節與需要補拍的位置。缺頁或無法辨讀音符時先保留待確認稿。
 2. 將音符寫成 [樂譜格式](references/score.md)。逐小節核對雙手起點和時值，檢查首尾、反覆展開後的小節總數與試聽長度。清楚告知為了播放而選用的假設速度。可讀資料留在使用者的工作階段。
-3. 使用者要求上傳時，呼叫 `drm_publish_score`，傳入 score。對同一次工作重試請沿用相同的 requestId。核對回傳的 id 與網址；若傳輸中斷，先用 `drm_list_scores` 核對帳號中的結果。使用者提供單張譜照時，以該樂譜的 `id` 呼叫 `drm_attach_original` 私下保存原圖。每曲有一個原譜圖檔欄位，多頁來源可將全部頁面排成一張可辨讀的長圖，並保留原件。MCP 附圖支援 768 KiB 以內的 PNG/JPEG，超過時，先以保留可讀性的 JPEG 或 PNG 副本縮小，再經 MCP 附上。若大小與清晰度無法兼顧，說明原圖保存狀態並保留原件。
+3. 使用者要求上傳時，呼叫 `drm_publish_score`，傳入 score。同一次工作重試時沿用相同的 requestId。核對回傳的 id 與網址。若傳輸中斷，先用 `drm_list_scores` 核對帳號中的結果。單張 JPEG 或 PNG 可用該樂譜的 id 呼叫 `drm_attach_original`，上限為 768 KiB。移轉獲授權的舊庫原檔，或保存 768 KiB 以內的本機 PDF 時，用 `drm_store_private_attachment` 依原始順序逐檔儲存，核對回傳的長度及 SHA-256。本機多張圖片或較大的 PDF 可經曲主已連接的配對移轉器逐檔傳送。
 4. 若只要求檔案，改呼叫 `drm_package_score`。把回傳的完整 package 字串寫入 filename 指定的 UTF-8 檔案，不加引號或 Markdown。使用者之後可將這個檔案交給 AI，透過簽發時使用的帳號匯入。
 5. 告知完成的曲名、小節數及可直接開啟的樂譜網址。分享給朋友由使用者在樂譜頁建立分享連結。
+
+## 補入既有鋼琴譜的書寫音
+
+使用者要在原曲補回已核對的原稿書寫音時，用曲主連線呼叫 `drm_get_piano_score({id})`，確認原曲與 `revision`。呼叫 `drm_add_piano_notation({id, expectedRevision: revision, measures})`。每項為 `{measure, notationNotes}`，小節從 1 起算。傳入缺少書寫層的小節，保留原稿音序、手別、起音、時值與聲部。只有確認原稿該小節全休止才填空陣列。
+
+核對回覆的原曲 `id`、`addedMeasures` 和 `unchangedMeasures`，分批時將回傳的 `revision` 用於下一批。若回覆中斷，原樣重送同一批。相同內容會回報已存在。既有書寫音有差異時，整批退回，請重新讀譜核對。完成後讀回指定小節，比對書寫音與來源，以及演奏 `notes` 與補入前是否相同。
 
 ## 既有的 .drm 檔
 
