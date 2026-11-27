@@ -3,6 +3,7 @@
 const usage = `用法：node numbered.mjs [score.json|-] [--key "Bb major"] [-o score.html]
 省略輸入或指定 - 時讀取 stdin；省略 -o 或指定 - 時寫入 stdout。
 --key 可覆寫原調，例如 B♭大調、F#、G minor、降E小調。小調採 6 為主音。
+開啟 HTML 預設顯示右手聲部；可切換完整雙手，再列印目前顯示的譜。
 模組：renderNumberedHtml(score, { key }) 回傳 HTML 字串。`;
 
 import {renderNumberedHtml} from './numbered-render.mjs';
