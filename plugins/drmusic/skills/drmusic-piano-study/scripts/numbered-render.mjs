@@ -1,3 +1,4 @@
+import {measureTiming} from './measure-timing.mjs';
 /** Shared engraving for the offline CLI and the in-site reader. */
 const letters = 'CDEFGAB';
 const naturals = [0, 2, 4, 5, 7, 9, 11];
@@ -65,31 +66,50 @@ function beatText(n) {
   return String(snap(n));
 }
 
-function makeVoices(score, barLength) {
+function makeVoices(score, timing) {
   const hands = { right: [], left: [] };
-  const total = score.measures.length * barLength;
+  const explicit = { right: new Set(), left: new Set() };
+  for (const bar of score.measures) {
+    for (const note of bar.notationNotes ?? []) {
+      if (note.voice === undefined) continue;
+      if (!Number.isSafeInteger(note.voice) || note.voice < 0 || !['left', 'right'].includes(note.hand))
+        throw new Error('書寫聲部編號或手別無效。');
+      explicit[note.hand].add(note.voice);
+    }
+  }
+  const voiceRows = {};
+  for (const hand of ['right', 'left']) {
+    const labels = [...explicit[hand]].sort((a, b) => a - b);
+    voiceRows[hand] = new Map(labels.map((label, row) => [label, row]));
+    hands[hand] = labels.map(() => []);
+  }
+  const {total} = timing;
   for (const [bar, measure] of score.measures.entries()) {
     if (!Array.isArray(measure?.notes)) throw new Error('第 ' + (bar + 1) + ' 小節缺少 notes。');
+    const origin = timing.starts[bar], barLength = timing.durations[bar];
     const chords = new Map();
-    for (const [i, note] of measure.notes.entries()) {
+    for (const [i, note] of (measure.notationNotes ?? measure.notes).entries()) {
       const label = '第 ' + (bar + 1) + ' 小節第 ' + (i + 1) + ' 音';
       if (!note || (note.hand !== 'right' && note.hand !== 'left') || !Number.isInteger(note.midi) || note.midi < 0 || note.midi > 127)
         throw new Error(label + '的 hand 或 MIDI 音高無效。');
       if (!Number.isFinite(note.start) || note.start < 0 || note.start >= barLength ||
-          !Number.isFinite(note.duration) || note.duration <= 0 || note.start + note.duration > total - bar * barLength + 1e-7)
+          !Number.isFinite(note.duration) || note.duration <= 0 || note.start + note.duration > total - origin + 1e-7)
         throw new Error(label + '的起點或時值超出譜面。');
-      const start = snap(bar * barLength + note.start);
-      const end = Math.min(total, snap(bar * barLength + (note.start + note.duration)));
+      const start = snap(origin + note.start);
+      const end = Math.min(total, snap(origin + (note.start + note.duration)));
       if (end <= start) throw new Error(label + '的時值小於可呈現精度。');
-      const id = [note.hand, start, end].join(':');
-      if (!chords.has(id)) chords.set(id, { hand: note.hand, start, end, pitches: [] });
+      const writtenVoice = measure.notationNotes === undefined ? undefined : note.voice;
+      const id = [note.hand, start, end, writtenVoice].join(':');
+      if (!chords.has(id)) chords.set(id, { bar, hand: note.hand, start, end, voice: writtenVoice, pitches: [] });
       chords.get(id).pitches.push(note.midi);
     }
     // Allocate from the whole timeline so a sustained note keeps its voice across bars.
     for (const chord of [...chords.values()].sort((a, b) => a.start - b.start || b.end - a.end)) {
       chord.pitches.sort((a, b) => b - a);
       const voices = hands[chord.hand];
-      let voice = voices.find(notes => notes.at(-1).end <= chord.start);
+      const rows = voiceRows[chord.hand];
+      let voice = chord.voice === undefined ? voices.find((notes, i) => i >= rows.size && notes.at(-1).end <= chord.start)
+        : voices[rows.get(chord.voice)];
       if (!voice) voices.push(voice = []);
       voice.push(chord);
     }
@@ -100,7 +120,7 @@ function makeVoices(score, barLength) {
 /**
  * Each row contains contiguous timed events within one bar. Null pitches mean rest.
  * @param {{title: string, composer?: string, key?: string, keySignature?: string,
- * kind?: string, bpm: number, timeSignature: number[], measures: {notes: {
+ * kind?: string, bpm: number, timeSignature: number[], measures: {duration?: number, timeSignature?: number[], notes: {
  * midi: number, start: number, duration: number, hand: string}[]}[]}} score
  */
 export function buildNumberedScore(score, { key: override } = {}) {
@@ -113,14 +133,21 @@ export function buildNumberedScore(score, { key: override } = {}) {
       ![1, 2, 4, 8, 16, 32].includes(meter[1])) throw new Error('拍號 timeSignature 無效。');
   if (!Number.isFinite(score.bpm) || score.bpm <= 0) throw new Error('四分音符速度 bpm 無效。');
   const barLength = 4 * meter[0] / meter[1];
-  const hands = makeVoices(score, barLength);
-  const bars = score.measures.map(() => ({ right: [], left: [] }));
+  const timing = measureTiming(score);
+  const hands = makeVoices(score, timing);
+  const bars = score.measures.map((_, i) => {
+    const current = timing.meters[i], prior = i ? timing.meters[i - 1] : meter;
+    const mark = current[0] !== prior[0] || current[1] !== prior[1] ? ' · ' + current.join('/') : '';
+    const duration = timing.durations[i];
+    const partial = duration !== current[0] * 4 / current[1] ? ' · ' + beatText(duration) + ' 拍' : '';
+    return { duration, meterLabel: mark + partial, right: [], left: [] };
+  });
   for (const hand of ['right', 'left']) {
     for (const [v, voice] of hands[hand].entries()) {
-      for (const note of voice) {
+      for (const note of voice ?? []) {
         const pitches = note.pitches.map(midi => pitchFor(midi, key));
-        for (let b = Math.floor(note.start / barLength); b < bars.length && b * barLength < note.end; b++) {
-          const origin = b * barLength;
+        for (let b = note.bar; b < bars.length && timing.starts[b] < note.end; b++) {
+          const origin = timing.starts[b], barLength = timing.durations[b];
           const start = snap(Math.max(origin, note.start) - origin, origin);
           const end = snap(Math.min(origin + barLength, note.end) - origin, origin);
           (bars[b][hand][v] ??= []).push({
@@ -140,12 +167,12 @@ export function buildNumberedScore(score, { key: override } = {}) {
           events.push(event);
           cursor = event.end;
         }
-        if (cursor < barLength) events.push({ start: cursor, end: barLength, pitches: null });
+        if (cursor < bar.duration) events.push({ start: cursor, end: bar.duration, pitches: null });
         rows[v] = events;
       }
     }
   }
-  return { title: score.title || '未命名樂譜', composer: score.composer || '', key, meter, bpm: score.bpm, barLength, bars };
+  return { title: score.title || '未命名樂譜', composer: score.composer || '', key, meter, bpm: score.bpm, barLength, timing, bars };
 }
 
 function rhythm(duration) {
@@ -212,7 +239,7 @@ export function renderNumberedBar(bar, number, barLength, { maxColumns = 8, inte
       return '<tr><th scope="row">' + voice.label + '</th>' + parts.join('') + '</tr>';
     }).join('');
     const position = interactive ? ` data-bar="${number}" data-offset="${stops[first]}"` : '';
-    bands.push(`<table${position}><caption>第 ${number} 小節${first ? '（續）' : ''}</caption><colgroup><col class="hand-col"><col span="${last - first}"></colgroup><thead><tr><th>拍位</th>${labels}</tr></thead><tbody>${rows}</tbody></table>`);
+    bands.push(`<table${position}><caption>第 ${number} 小節${first ? '（續）' : ''}${bar.meterLabel ?? ''}</caption><colgroup><col class="hand-col"><col span="${last - first}"></colgroup><thead><tr><th>拍位</th>${labels}</tr></thead><tbody>${rows}</tbody></table>`);
   }
   return bands.join('');
 }
@@ -242,10 +269,10 @@ thead{display:table-header-group}tr{break-inside:avoid}th,td{padding:2pt}.dots i
 `;
 
 export function renderNumberedHtml(score, options) {
-  const { title, composer, key, meter, bpm, barLength, bars } = buildNumberedScore(score, options);
+  const { title, composer, key, meter, bpm, bars } = buildNumberedScore(score, options);
   return `<!doctype html>
 <html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escape(title)}｜鋼琴簡譜</title><style>${css}</style></head>
 <body><main><header><div class="kicker">DrMusic　鋼琴簡譜</div><h1>${escape(title)}</h1><div class="meta"><span>${escape(key.name)}　1 = ${key.root}4</span><span>${meter.join('/')} 拍</span><span>♩ = ${bpm}</span>${composer ? '<span>作曲　' + escape(composer) + '</span>' : ''}</div></header>
 <p class="legend">${key.minor ? '小調主音記為 6。' : ''}無點的 1 為 ${key.root}4（MIDI ${key.baseMidi}）。每個上點升一個八度，下點降一個八度。夾線內的音同彈，0 為休止，⌒ 接續同音。<br>拍位從 0 起算，以四分音符為 1 拍。數字下方標示實際時值。下方短線為減時線，右點為附點，橫線每條延長 1 拍。同手多列同時演奏。</p>
-${bars.map((bar, i) => renderNumberedBar(bar, i + 1, barLength)).join('\n')}</main></body></html>\n`;
+${bars.map((bar, i) => renderNumberedBar(bar, i + 1, bar.duration)).join('\n')}</main></body></html>\n`;
 }
