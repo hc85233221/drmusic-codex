@@ -743,53 +743,28 @@
     }
   },
   {
-    "name": "drm_annotate_piano_study",
-    "description": "Apply only the requested piano study suggestions to private beat notes on the owned score. Set preview:true to read without writing. Keep the same revision and kinds and follow next to finish. Report skipped tooLong and conflict cells; retry a conflict after rereading. The existing website displays the combined note.",
+    "name": "drm_create_numbered_score",
+    "description": "Create an independent, playable numbered-notation score in the signed-in owner’s private library from their existing piano score. Return the new url. Repeating the same source version, title and key returns the existing score. Supply key only when confirmed by the user.",
     "inputSchema": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "id",
-        "kinds"
+        "id"
       ],
       "properties": {
         "id": {
           "type": "string",
           "format": "uuid"
         },
-        "startMeasure": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 1024,
-          "description": "First measure on this page, one-based."
-        },
-        "revision": {
+        "title": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9_-]{43}$",
-          "description": "Use the revision from the first page to keep one consistent score."
+          "minLength": 1,
+          "maxLength": 180
         },
-        "measureCount": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 8,
-          "default": 8
-        },
-        "kinds": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 2,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "enum": [
-              "fingering",
-              "leftChord"
-            ]
-          }
-        },
-        "preview": {
-          "type": "boolean",
-          "default": false
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
         }
       }
     },
