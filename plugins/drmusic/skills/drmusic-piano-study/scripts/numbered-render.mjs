@@ -23,13 +23,28 @@ function parseKey(value) {
   const rootAccidental = mod(tonic + (minor ? 3 : 0) - naturals[rootLetter] + 6, 12) - 6;
   return {
     name: letters[index] + accidental(alteration) + (minor ? ' 小調' : ' 大調'), minor,
-    root: letters[rootLetter] + accidental(rootAccidental),
+    root: letters[rootLetter] + accidental(rootAccidental), rootLetter,
     baseMidi: 60 + naturals[rootLetter] + rootAccidental,
     preferFlats: signature[rootLetter] + 7 * rootAccidental < 0
   };
 }
 
-function pitchFor(midi, key) {
+function pitchFor(midi, key, spelling) {
+  // A chromatic pitch can represent different scale degrees (e.g. ♯4 or ♭5).
+  // Count letters, including octave boundaries such as B♯3 sounding at C4.
+  const written = typeof spelling === 'string' && /^([A-G])(#{1,3}|b{1,3})?(-?\d+)$/.exec(spelling);
+  if (written) {
+    const letter = letters.indexOf(written[1]);
+    const sign = written[2] ?? '';
+    const offset = sign.length * (sign.startsWith('b') ? -1 : 1);
+    const writtenOctave = Number(written[3]);
+    if ((writtenOctave + 1) * 12 + naturals[letter] + offset === midi) {
+      const steps = (writtenOctave - 4) * 7 + letter - key.rootLetter;
+      const degree = mod(steps, 7);
+      const octave = Math.floor(steps / 7);
+      return { degree: degree + 1, alter: midi - (key.baseMidi + octave * 12 + naturals[degree]), octave };
+    }
+  }
   const delta = midi - key.baseMidi;
   const pc = mod(delta, 12);
   let index = naturals.indexOf(pc);
@@ -100,12 +115,12 @@ function makeVoices(score, timing) {
       if (end <= start) throw new Error(label + '的時值小於可呈現精度。');
       const writtenVoice = measure.notationNotes === undefined ? undefined : note.voice;
       const id = [note.hand, start, end, writtenVoice].join(':');
-      if (!chords.has(id)) chords.set(id, { bar, hand: note.hand, start, end, voice: writtenVoice, pitches: [] });
-      chords.get(id).pitches.push(note.midi);
+      if (!chords.has(id)) chords.set(id, { bar, hand: note.hand, start, end, voice: writtenVoice, notes: [] });
+      chords.get(id).notes.push(note);
     }
     // Allocate from the whole timeline so a sustained note keeps its voice across bars.
     for (const chord of [...chords.values()].sort((a, b) => a.start - b.start || b.end - a.end)) {
-      chord.pitches.sort((a, b) => b - a);
+      chord.notes.sort((a, b) => b.midi - a.midi);
       const voices = hands[chord.hand];
       const rows = voiceRows[chord.hand];
       let voice = chord.voice === undefined ? voices.find((notes, i) => i >= rows.size && notes.at(-1).end <= chord.start)
@@ -132,7 +147,7 @@ function restoreWrittenTies(score, timing, hands) {
   });
   for (const [hand,voices] of Object.entries(hands)) for (const voice of voices) {
     const pitches = new Map();
-    for (const chord of voice) for (const midi of new Set(chord.pitches)) {
+    for (const chord of voice) for (const midi of new Set(chord.notes.map(n => n.midi))) {
       if (!pitches.has(midi)) pitches.set(midi, []);
       pitches.get(midi).push(chord);
     }
@@ -179,13 +194,13 @@ export function buildNumberedScore(score, { key: override } = {}) {
     const mark = current[0] !== prior[0] || current[1] !== prior[1] ? ' · ' + current.join('/') : '';
     const duration = timing.durations[i];
     const partial = duration !== current[0] * 4 / current[1] ? ' · ' + beatText(duration) + ' 拍' : '';
-    return { duration, meter: current, meterLabel: mark + partial, chords: measure.chords ?? [], lyrics: measure.lyrics ?? [], right: [], left: [] };
+    return { sourceMarks: [], duration, meter: current, meterLabel: mark + partial, chords: measure.chords ?? [], lyrics: measure.lyrics ?? [], right: [], left: [] };
   });
   for (const hand of ['right', 'left']) {
     for (const [v, voice] of hands[hand].entries()) {
       for (const note of voice ?? []) {
-        const pitches = note.pitches.map(midi => ({
-          ...pitchFor(midi, key), ...(note.tieFrom?.has(midi) && {tieIn:true}), ...(note.tieTo?.has(midi) && {tieOut:true})
+        const pitches = note.notes.map(({midi, spelling}) => ({
+          midi, ...pitchFor(midi, key, spelling), ...(note.tieFrom?.has(midi) && {tieIn:true}), ...(note.tieTo?.has(midi) && {tieOut:true})
         }));
         for (let b = note.bar; b < bars.length && timing.starts[b] < note.end; b++) {
           const origin = timing.starts[b], barLength = timing.durations[b];
@@ -213,7 +228,62 @@ export function buildNumberedScore(score, { key: override } = {}) {
       }
     }
   }
+  attachSourceMarks(score, bars, hands, key);
   return { title: score.title || '未命名樂譜', composer: score.composer || '', key, meter, bpm: score.bpm, barLength, timing, bars };
+}
+
+// Resolve source voice numbers before projecting a chord to its top note.
+function attachSourceMarks(score,bars,hands,key) {
+  function target(i,a) {
+    const rows=bars[i]?.[a.hand];
+    if (!rows) return;
+    for (const [v,events] of rows.entries()) {
+      const voice=hands[a.hand][v]?.[0]?.voice ?? v;
+      if (a.voice!==undefined && a.voice!==voice) continue;
+      const e=events.find(n=>n.start<=a.start+1e-8 && n.end>a.start+1e-8);
+      if (!e || (a.midi!==undefined && !e.pitches?.some(p=>p.midi===a.midi))) continue;
+      return {lane:a.hand+v, lead:a.hand==='right' && v===0 && (a.midi===undefined || e.pitches?.[0].midi===a.midi),row:v,event:e};
+    }
+  }
+  score.measures.forEach((measure,i)=>{
+    const marks=[], octaveRuns=new Map();
+    for (const raw of [...(measure.notationMarks ?? [])].sort((a,b)=>a.start-b.start)) {
+      if (raw.type!=='octaveShift' || raw.end) {marks.push(raw);continue;}
+      const event=target(i,raw);
+      if (!event) continue;
+      const key=[event.lane,raw.octaves,raw.placement].join(':');
+      const previous=octaveRuns.get(key);
+      if (previous && Math.abs(previous.until-raw.start)<1e-7) {
+        previous.mark.end={measure:i+1,hand:raw.hand,start:raw.start,voice:raw.voice,midi:raw.midi};
+        previous.until=event.event.end;
+      } else {
+        const mark={...raw};
+        marks.push(mark);
+        octaveRuns.set(key,{mark,until:event.event.end});
+      }
+    }
+    for (const mark of marks) {
+      const a=target(i,mark), j=mark.end ? mark.end.measure-1 : i;
+      const b=mark.end ? target(j,mark.end) : a;
+      if (!a || !b) continue;
+      const grace=mark.graceNotes?.map(n=>({value:n.value,pitches:n.pitches.map((p,i)=>pitchFor(p,key,n.spellings?.[i]))}));
+      for (let k=i;k<=j;k++) {
+        const bar=bars[k], first=k===i, last=k===j;
+        const start=first?mark.start:0, until=last?(mark.end?.start ?? mark.start):bar.duration;
+        bar.sourceMarks.push({mark,grace,first,last,start,until,from:a.lane,to:b.lane,lead:a.lead&&b.lead});
+        if (mark.type==='octaveShift') {
+          for (const e of bar[mark.hand][a.row] ?? []) {
+            if (e.pitches && e.start>=start-1e-8 && e.start<=until+1e-8) e.displayOctave=mark.octaves;
+          }
+        }
+        if (mark.type==='tie') {
+          // An explicit source tie supplies the visible arc; retain the actual pitch data.
+          if (first) (a.event.sourceOut ??= []).push(mark.midi);
+          if (last) (b.event.sourceIn ??= []).push(mark.end.midi);
+        }
+      }
+    }
+  });
 }
 
 // Durations are in quarter notes. Keep uncommon subdivisions exact, including tuplets.
@@ -238,10 +308,11 @@ function symbols(events, topOnly) {
       const continuation = start > event.start;
       const dash = continuation && previousDuration === 1 && duration === 1 && !!event.pitches;
       const short = rhythm ?? shortRhythm(duration);
-      const pitches = topOnly ? event.pitches?.slice(0, 1) : event.pitches;
+      const group = topOnly ? event.pitches?.slice(0, 1) : event.pitches;
+      const pitches = event.displayOctave ? group?.map(p=>({...p,octave:p.octave-event.displayOctave})) : group;
       items.push({start, duration, pitches, dash, rhythm: short ?? {lines:0, exact:duration < 1},
-        tieIn: !!event.pitches && (((event.tieIn || pitches?.some(p => p.tieIn)) && !continuation) || (continuation && !dash)),
-        tieOut: !!event.pitches && (event.tieOut || pitches?.some(p => p.tieOut)) && duration === remaining});
+        tieIn: !!event.pitches && (((event.tieIn || pitches?.some(p => p.tieIn)) && !pitches?.some(p=>event.sourceIn?.includes(p.midi)) && !continuation) || (continuation && !dash)),
+        tieOut: !!event.pitches && (event.tieOut || pitches?.some(p => p.tieOut)) && !pitches?.some(p=>event.sourceOut?.includes(p.midi)) && duration === remaining});
       previousDuration = duration;
       start = duration === remaining ? event.end : snap(start + duration);
     }
@@ -302,9 +373,14 @@ function prepareBar(bar, index, both, extraOffsets) {
     const units = Array.from(label).reduce((n,c) => n + (c.charCodeAt(0) < 128 ? 9 : 16), 0);
     reserve(start, Math.max(23, Math.min(220, units + 8)));
   }
+  const marks=bar.sourceMarks.filter(m=>both || m.lead);
+  for (const m of marks) {
+    if (m.first) reserve(m.start, m.grace ? Math.max(34, m.grace.length*15) : 18);
+    if (m.last && m.mark.end) reserve(m.until,18);
+  }
   const ordered = [...widths.keys()].sort((a,b) => a-b);
   const columns = ordered.map((t,i) => ({t, width:Math.max(widths.get(t), 30 * Math.min(2,(ordered[i+1] ?? bar.duration)-t))}));
-  return {index, bar, voices, chords, lyrics, columns};
+  return {index, bar, voices, chords, lyrics, columns, marks};
 }
 
 function metricalBeat(meter) {
@@ -369,6 +445,59 @@ function connectBeams(columns, notes, meter) {
   return bridges.join('');
 }
 
+// Vector outlines keep music signs legible in offline files without specialty fonts.
+const markIcon=(path,extra='')=>'<svg aria-hidden="true" viewBox="0 0 24 16" width="22" height="15"><path d="'+path+'" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>'+extra+'</svg>';
+const wave='M2 10 L6 5 10 10 14 5 18 10 22 5';
+const sourceSigns = {accent:markIcon('M5 4 L19 8 5 12'),marcato:markIcon('M7 13 L12 3 17 13'),
+  staccato:'•',tenuto:'–',fermata:markIcon('M3 12 Q12 -4 21 12','<circle cx="12" cy="10" r="1.7"/>'),
+  mordent:markIcon(wave),mordentInverted:markIcon(wave+' M12 2 V14'),arpeggio:markIcon('M12 1 Q7 3 12 5 T12 9 T12 13 L11 15')};
+const sourceNames = {accent:'重音',marcato:'強重音',staccato:'斷音',tenuto:'保持音',fermata:'延長記號',
+  mordent:'波音',mordentInverted:'反向波音',arpeggio:'琶音',dynamic:'力度',grace:'倚音',octaveShift:'八度記號',tie:'延音線',slur:'圓滑線'};
+
+function sourceLane(parts, key, columns, side, lanePositions) {
+  const elements=[], stacks=new Map(), firstBeat=columns[0].t, lastBeat=columns.at(-1).t;
+  const hasSpan=parts.some(p=>p.from===key && p.mark.end && p.until>=firstBeat && p.start<=lastBeat &&
+    (p.mark.placement ?? (p.mark.type==='tie' || (p.mark.type==='octaveShift' && p.mark.octaves<0)?'below':'above'))===side);
+  let layers=hasSpan?1:0;
+  for (const part of parts) {
+    const m=part.mark, type=m.type;
+    const position=m.placement ?? ((type==='octaveShift' && m.octaves<0) || type==='dynamic' || type==='tie'?'below':'above');
+    if (position!==side || part.from!==key || part.until<firstBeat || part.start>lastBeat) continue;
+    const start=columns.findIndex(c=>Math.abs(c.t-part.start)<1e-7);
+    const end=columns.findIndex(c=>Math.abs(c.t-part.until)<1e-7);
+    const begins=part.first && start>=0, ends=part.last && end>=0;
+    if (!m.end && !begins) continue;
+    const label=sourceNames[type];
+    if (!label) continue;
+    const col=begins?start:0;
+    const level=m.end?0:((stacks.get(col) ?? 0)+1);
+    if (!m.end) stacks.set(col,level);layers=Math.max(layers,level+1);
+    const attrs=' data-source-mark="'+type+'" aria-label="'+label+'" title="'+label+'"';
+    const grid='grid-row:'+ (level+1)+';grid-column:'+(col+1);
+    if (type==='tie' || type==='slur' || (type==='octaveShift' && m.end)) {
+      const right=ends?end:columns.length;
+      const short=right===col;
+      const placement=side==='below'?1:-1;
+      const dy=ends && part.from!==part.to ? (lanePositions.get(part.to+'note'+side)??0)-(lanePositions.get(part.from+side)??0)-10 : 0;
+      const y1=begins?10:10+placement*7, y2=(ends?10:10+placement*7)+dy;
+      const d='M0 '+y1+' C24 '+(10+placement*10)+' 76 '+(10+placement*10+dy)+' 100 '+y2;
+      const text=type==='octaveShift'&&begins?octaveText(m.octaves):'';
+      elements.push('<span class="jp-source-span '+(begins?'jp-span-start ':'')+(ends?'jp-span-end ':'')+(short?'jp-span-short':'')+'"'+attrs+
+        ' style="'+grid+' / '+(short?col+2:right+1)+'">'+(type==='octaveShift'?'<i class="jp-octave-rule">'+text+'</i>':
+        '<svg viewBox="0 0 100 20" preserveAspectRatio="none" aria-hidden="true"><path d="'+d+'" fill="none" stroke="currentColor" stroke-width="1.4" vector-effect="non-scaling-stroke"/></svg>')+'</span>');
+    } else {
+      let sign=sourceSigns[type];
+      if (type==='dynamic') sign=escape(m.value);
+      if (type==='octaveShift') sign=octaveText(m.octaves);
+      if (type==='fermata' && side==='below') sign='<span style="display:inline-flex;transform:rotate(180deg)">'+sign+'</span>';
+      if (type==='grace') sign=part.grace.map(g=>'<span class="jp-grace" data-value="'+g.value+'">'+g.pitches.map(pitchGlyph).join('')+'</span>').join('');
+      elements.push('<span class="jp-source-sign"'+attrs+' style="'+grid+'">'+sign+'</span>');
+    }
+  }
+  return {html:elements.join(''),height:layers*21};
+}
+function octaveText(n) { return (Math.abs(n)===2?'15':'8')+(n>0?(Math.abs(n)===2?'ma':'va'):(Math.abs(n)===2?'mb':'vb')); }
+
 function renderLine(parts, both, interactive) {
   const voiceKeys = [...new Set(parts.flatMap(p => [...p.voices.keys()]))].sort((a,b) =>
     Number(b.startsWith('right')) - Number(a.startsWith('right')) || parseInt(a.match(/\d+/)[0]) - parseInt(b.match(/\d+/)[0]));
@@ -385,6 +514,23 @@ function renderLine(parts, both, interactive) {
     }
     return [key,{foot, height:height+Math.max(0,foot-10)}];
   }));
+  const lanePositions=new Map(), sourceRows=new Map();
+  let y=0;
+  for (const key of voiceKeys) {
+    for (const side of ['above','below']) {
+      if (side==='below') y+=voiceMetrics.get(key).height+(both?9:0);
+      lanePositions.set(key+side,y);
+      if (side==='below') {
+        const foot=voiceMetrics.get(key).foot;
+        lanePositions.set(key+'noteabove',y-foot-30);
+        lanePositions.set(key+'notebelow',y-foot+7);
+      }
+      const height=Math.max(...parts.map(p=>sourceLane(p.marks,key,p.columns,side,lanePositions).height));
+      sourceRows.set(key+side,height);
+      y+=height;
+    }
+    if (key==='right0') y+=verses.length*22;
+  }
   const markup = parts.map(p => {
     const {columns, bar} = p, number = p.index + 1, from = columns[0].t;
     const grid = columns.map(c => c.width + 'fr').join(' ');
@@ -414,8 +560,14 @@ function renderLine(parts, both, interactive) {
       }
       if (previous >= 0 && byStart.get(columns[previous].t).tieOut) curves.push(
         '<i class="jp-arc jp-outgoing" style="grid-column:'+(previous+1)+' / -1" aria-label="延至下一段"></i>');
+      const markRow=side=>{
+        const height=sourceRows.get(key+side);
+        if (height) rows.push(lane('jp-source-row',sourceLane(p.marks,key,columns,side,lanePositions).html,'style="min-height:'+height+'px"'));
+      };
+      markRow('above');
       rows.push(lane('jp-notes', (both ? '<span class="jp-hand">' + voiceName(key) + '</span>' : '') + noteRow + connectBeams(columns, byStart, bar.meter) + curves.join(''),
         'style="--lane-h:' + voiceMetrics.get(key).height + 'px;--foot:' + voiceMetrics.get(key).foot + 'px"'));
+      markRow('below');
       if (key === 'right0') for (const verse of verses) rows.push(textLane(p.lyrics.get(verse), 'jp-lyrics'));
     }
     const barTitle = '第 ' + number + ' 小節' + bar.meterLabel;
@@ -484,6 +636,14 @@ export const numberedCss = `
 .jp-open .jp-notes::after{border-right-style:dashed;color:#777}
 .jp-subdivision{position:absolute;right:-3px;top:-11px;font:11px/1 serif}
 .jp-chords{min-height:20px;font:600 14px/1.2 system-ui}.jp-lyrics{min-height:22px;font:16px/1.4 "Songti TC","PMingLiU",serif}.jp-lyrics .jp-cell,.jp-chords .jp-cell{white-space:pre-wrap;overflow-wrap:anywhere}
+.jp-source-row{position:relative;grid-auto-rows:21px;align-items:center;z-index:1;pointer-events:none}
+.jp-source-sign{justify-self:start;text-align:center;min-width:14px;font:600 17px/20px "Apple Symbols","STIX Two Math",serif;white-space:nowrap}
+.jp-source-sign svg{display:block;overflow:visible}
+.jp-source-sign[data-source-mark=dynamic]{font:bold italic 17px/20px Georgia,serif}
+.jp-source-span{position:relative;display:block;height:20px;margin-left:-8px;margin-right:-6px;overflow:visible}
+.jp-source-span.jp-span-start{margin-left:7px}.jp-source-span.jp-span-end{margin-right:-7px}.jp-source-span.jp-span-short{width:15px}
+.jp-source-span svg{display:block;width:100%;height:20px;overflow:visible}.jp-octave-rule{display:block;border-top:1px dashed currentColor;font:italic 13px Georgia,serif}
+.jp-grace{display:inline-flex;flex-direction:column;margin-right:2px;font:600 12px/1 serif;border-bottom:1px solid currentColor}.jp-grace[data-value="16"]{border-bottom:3px double currentColor}
 .jp-hand{position:absolute;left:0;top:-4px;font:10px/1.1 system-ui;color:#525d58}.jp-both .jp-notes{margin-top:9px}
 .jp-hits{position:absolute;inset:14px 6px 0 8px}.jp-hits button{grid-row:1;background:transparent;border:0;border-radius:2px;padding:0;min-width:0;cursor:pointer}
 @media screen{.jp-hits button:focus-visible{outline:2px solid #295c49;outline-offset:-2px;background:#40845a12}.jp-hits button:hover{background:#40845a16}.jp-bar[data-playing]{background:#43895f10}.jp-hits button[data-current]{box-shadow:inset 0 -3px #295c49}.jp-hits button[data-in-loop]{background:#40845a20}.jp-hits button[data-boundary]{border-left:2px solid #316a4c}}
