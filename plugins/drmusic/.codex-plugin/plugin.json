@@ -1,6 +1,6 @@
 {
   "name": "drmusic",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "匯入鋼琴與吉他譜，將鋼琴譜轉成雙手簡譜，存入私人曲庫或下載列印。",
   "homepage": "https://drmusic.rockdawn.chatgpt.site",
   "author": {
