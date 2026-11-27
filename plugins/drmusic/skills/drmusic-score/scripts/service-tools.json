@@ -127,6 +127,158 @@
                       }
                     }
                   },
+                  "notationMarks": {
+                    "type": "array",
+                    "maxItems": 256,
+                    "description": "Source-verified written marks. tie and slur require a later end anchor with a one-based absolute measure. A tie requires equal MIDI at both anchors. Times are local quarter beats.",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "type",
+                        "start",
+                        "hand"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "accent",
+                            "marcato",
+                            "staccato",
+                            "tenuto",
+                            "fermata",
+                            "tie",
+                            "slur",
+                            "dynamic",
+                            "mordent",
+                            "mordentInverted",
+                            "arpeggio",
+                            "grace",
+                            "octaveShift"
+                          ]
+                        },
+                        "start": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "hand": {
+                          "type": "string",
+                          "enum": [
+                            "left",
+                            "right"
+                          ]
+                        },
+                        "midi": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 127
+                        },
+                        "voice": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "end": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "measure",
+                            "start",
+                            "hand"
+                          ],
+                          "properties": {
+                            "measure": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 1024
+                            },
+                            "start": {
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            "hand": {
+                              "type": "string",
+                              "enum": [
+                                "left",
+                                "right"
+                              ]
+                            },
+                            "midi": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 127
+                            },
+                            "voice": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            }
+                          }
+                        },
+                        "value": {
+                          "type": "string",
+                          "enum": [
+                            "pp",
+                            "p",
+                            "mp",
+                            "mf",
+                            "f",
+                            "ff",
+                            "sfp"
+                          ]
+                        },
+                        "octaves": {
+                          "type": "integer",
+                          "enum": [
+                            -2,
+                            -1,
+                            1,
+                            2
+                          ]
+                        },
+                        "graceNotes": {
+                          "type": "array",
+                          "minItems": 1,
+                          "maxItems": 32,
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "pitches",
+                              "value"
+                            ],
+                            "additionalProperties": false,
+                            "properties": {
+                              "pitches": {
+                                "type": "array",
+                                "minItems": 1,
+                                "maxItems": 32,
+                                "items": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 127
+                                }
+                              },
+                              "value": {
+                                "type": "string",
+                                "enum": [
+                                  "8",
+                                  "16"
+                                ]
+                              }
+                            }
+                          }
+                        },
+                        "placement": {
+                          "type": "string",
+                          "enum": [
+                            "above",
+                            "below"
+                          ]
+                        }
+                      }
+                    }
+                  },
                   "notes": {
                     "type": "array",
                     "items": {
@@ -380,6 +532,158 @@
                       }
                     }
                   },
+                  "notationMarks": {
+                    "type": "array",
+                    "maxItems": 256,
+                    "description": "Source-verified written marks. tie and slur require a later end anchor with a one-based absolute measure. A tie requires equal MIDI at both anchors. Times are local quarter beats.",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "type",
+                        "start",
+                        "hand"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "accent",
+                            "marcato",
+                            "staccato",
+                            "tenuto",
+                            "fermata",
+                            "tie",
+                            "slur",
+                            "dynamic",
+                            "mordent",
+                            "mordentInverted",
+                            "arpeggio",
+                            "grace",
+                            "octaveShift"
+                          ]
+                        },
+                        "start": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "hand": {
+                          "type": "string",
+                          "enum": [
+                            "left",
+                            "right"
+                          ]
+                        },
+                        "midi": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 127
+                        },
+                        "voice": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "end": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "measure",
+                            "start",
+                            "hand"
+                          ],
+                          "properties": {
+                            "measure": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 1024
+                            },
+                            "start": {
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            "hand": {
+                              "type": "string",
+                              "enum": [
+                                "left",
+                                "right"
+                              ]
+                            },
+                            "midi": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 127
+                            },
+                            "voice": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            }
+                          }
+                        },
+                        "value": {
+                          "type": "string",
+                          "enum": [
+                            "pp",
+                            "p",
+                            "mp",
+                            "mf",
+                            "f",
+                            "ff",
+                            "sfp"
+                          ]
+                        },
+                        "octaves": {
+                          "type": "integer",
+                          "enum": [
+                            -2,
+                            -1,
+                            1,
+                            2
+                          ]
+                        },
+                        "graceNotes": {
+                          "type": "array",
+                          "minItems": 1,
+                          "maxItems": 32,
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "pitches",
+                              "value"
+                            ],
+                            "additionalProperties": false,
+                            "properties": {
+                              "pitches": {
+                                "type": "array",
+                                "minItems": 1,
+                                "maxItems": 32,
+                                "items": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 127
+                                }
+                              },
+                              "value": {
+                                "type": "string",
+                                "enum": [
+                                  "8",
+                                  "16"
+                                ]
+                              }
+                            }
+                          }
+                        },
+                        "placement": {
+                          "type": "string",
+                          "enum": [
+                            "above",
+                            "below"
+                          ]
+                        }
+                      }
+                    }
+                  },
                   "notes": {
                     "type": "array",
                     "items": {
@@ -581,24 +885,30 @@
                           "minimum": 1,
                           "maximum": 8
                         },
+                        "accent": {
+                          "type": "boolean",
+                          "description": "Explicit source accent on this hit. An unidentified instrument remains silent."
+                        },
                         "instrument": {
                           "type": "string",
                           "enum": [
                             "kick",
                             "snare",
-                            "rim",
+                            "tomHigh",
+                            "tomMid",
+                            "floorTom",
                             "hiHatClosed",
                             "hiHatOpen",
                             "hiHatPedal",
                             "ride",
-                            "rideBell",
+                            "crash1",
+                            "crash2",
                             "crash",
+                            "rideBell",
+                            "rim",
+                            "tomLow",
                             "splash",
                             "china",
-                            "tomHigh",
-                            "tomMid",
-                            "tomLow",
-                            "floorTom",
                             "cowbell",
                             "unknown"
                           ],
@@ -868,24 +1178,30 @@
                           "minimum": 1,
                           "maximum": 8
                         },
+                        "accent": {
+                          "type": "boolean",
+                          "description": "Explicit source accent on this hit. An unidentified instrument remains silent."
+                        },
                         "instrument": {
                           "type": "string",
                           "enum": [
                             "kick",
                             "snare",
-                            "rim",
+                            "tomHigh",
+                            "tomMid",
+                            "floorTom",
                             "hiHatClosed",
                             "hiHatOpen",
                             "hiHatPedal",
                             "ride",
-                            "rideBell",
+                            "crash1",
+                            "crash2",
                             "crash",
+                            "rideBell",
+                            "rim",
+                            "tomLow",
                             "splash",
                             "china",
-                            "tomHigh",
-                            "tomMid",
-                            "tomLow",
-                            "floorTom",
                             "cowbell",
                             "unknown"
                           ],
@@ -1626,8 +1942,274 @@
     }
   },
   {
+    "name": "drm_correct_drum_score",
+    "description": "Correct an existing drum chart owned by the signed-in user at its original ID. Pass the current revision and either complete verified measures or hitMarks to add only verified accents by one-based measure and zero-based hitIndex. Omitting sourceNotes preserves them. Re-read after a conflict or interrupted request.",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "revision"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "measures"
+          ]
+        },
+        {
+          "required": [
+            "hitMarks"
+          ]
+        }
+      ],
+      "properties": {
+        "hitMarks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "measure": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1024
+              },
+              "hitIndex": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 15999
+              },
+              "accent": {
+                "type": "boolean",
+                "enum": [
+                  true
+                ]
+              }
+            },
+            "required": [
+              "measure",
+              "hitIndex",
+              "accent"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 16000
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "revision": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$"
+        },
+        "measures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "section": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 180
+              },
+              "timeSignature": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 32
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "Printed [numerator, denominator]. Denominator is 1, 2, 4, 8, 16 or 32. Omit if unmarked."
+              },
+              "duration": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 128,
+                "description": "Written length in quarter-note beats."
+              },
+              "hits": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "start": {
+                      "type": "number",
+                      "minimum": 0,
+                      "description": "Quarter-note beats from the start of this measure."
+                    },
+                    "duration": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "maximum": 128,
+                      "description": "Written length in quarter-note beats."
+                    },
+                    "voice": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 8
+                    },
+                    "accent": {
+                      "type": "boolean",
+                      "description": "Explicit source accent on this hit. An unidentified instrument remains silent."
+                    },
+                    "instrument": {
+                      "type": "string",
+                      "enum": [
+                        "kick",
+                        "snare",
+                        "tomHigh",
+                        "tomMid",
+                        "floorTom",
+                        "hiHatClosed",
+                        "hiHatOpen",
+                        "hiHatPedal",
+                        "ride",
+                        "crash1",
+                        "crash2",
+                        "crash",
+                        "rideBell",
+                        "rim",
+                        "tomLow",
+                        "splash",
+                        "china",
+                        "cowbell",
+                        "unknown"
+                      ],
+                      "description": "Use unknown for an unconfirmed drum or cymbal. Display it silently, preserving the visible marking."
+                    },
+                    "head": {
+                      "type": "string",
+                      "enum": [
+                        "normal",
+                        "cross",
+                        "circleCross",
+                        "diamond",
+                        "slash",
+                        "star"
+                      ]
+                    },
+                    "markAbove": {
+                      "type": "string",
+                      "enum": [
+                        "openCircle"
+                      ],
+                      "description": "A separate open circle above the head. Distinct from circleCross, where the circle encloses the cross. This marking does not select an instrument."
+                    },
+                    "staffStep": {
+                      "type": "integer",
+                      "minimum": -16,
+                      "maximum": 24,
+                      "description": "Bottom staff line is 0, each space or line up adds 1."
+                    }
+                  },
+                  "required": [
+                    "start",
+                    "duration",
+                    "instrument"
+                  ]
+                },
+                "minItems": 0,
+                "maxItems": 16000
+              },
+              "rests": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "start": {
+                      "type": "number",
+                      "minimum": 0,
+                      "description": "Quarter-note beats from the start of this measure."
+                    },
+                    "duration": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "maximum": 128,
+                      "description": "Written length in quarter-note beats."
+                    },
+                    "voice": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 8
+                    }
+                  },
+                  "required": [
+                    "start",
+                    "duration"
+                  ]
+                },
+                "minItems": 0,
+                "maxItems": 16000
+              }
+            },
+            "required": [
+              "hits"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 1024
+        },
+        "sourceNotes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "uncertain",
+                  "skipped",
+                  "text"
+                ]
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              },
+              "page": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "measure": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1024
+              },
+              "start": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Quarter-note beats from the start of this measure."
+              }
+            },
+            "required": [
+              "status",
+              "text"
+            ]
+          },
+          "minItems": 0,
+          "maxItems": 1024
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
     "name": "drm_add_piano_notation",
-    "description": "Add verified source notation to an owned piano score or numbered snapshot at its existing ID. Both accept original written notes, timed chord symbols and verse lyrics. Use the target score’s own ID and revision. Written notes are added only when the measure lacks a written layer and never replace performed notes. Read expectedRevision with drm_get_piano_score first. Use only verified original notation. The batch is atomic. Existing identical data is acknowledged. New text anchors or verses can be appended. A conflicting group at the same beat and verse is rejected. Preserve the order of notes and same-beat text on retries.",
+    "description": "Add verified source notation to an owned piano score or numbered snapshot at its existing ID. Both accept notationMarks (verified accents, fermatas, ties and slurs), original written notes, timed chord symbols and verse lyrics. Use the target score’s own ID and revision. Written notes are added only when the measure lacks a written layer and never replace performed notes. Read expectedRevision with drm_get_piano_score first. Use only verified original notation. The batch is atomic. Existing identical data is acknowledged. New text anchors or verses can be appended. A conflicting group at the same beat and verse is rejected. Preserve the order of notes and same-beat text on retries.",
     "inputSchema": {
       "type": "object",
       "additionalProperties": false,
@@ -1656,6 +2238,11 @@
               "measure"
             ],
             "anyOf": [
+              {
+                "required": [
+                  "notationMarks"
+                ]
+              },
               {
                 "required": [
                   "notationNotes"
@@ -1724,6 +2311,158 @@
                       "type": "integer",
                       "minimum": 1,
                       "maximum": 32
+                    }
+                  }
+                }
+              },
+              "notationMarks": {
+                "type": "array",
+                "maxItems": 256,
+                "description": "Source-verified written marks. tie and slur require a later end anchor with a one-based absolute measure. A tie requires equal MIDI at both anchors. Times are local quarter beats.",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "type",
+                    "start",
+                    "hand"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "accent",
+                        "marcato",
+                        "staccato",
+                        "tenuto",
+                        "fermata",
+                        "tie",
+                        "slur",
+                        "dynamic",
+                        "mordent",
+                        "mordentInverted",
+                        "arpeggio",
+                        "grace",
+                        "octaveShift"
+                      ]
+                    },
+                    "start": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "hand": {
+                      "type": "string",
+                      "enum": [
+                        "left",
+                        "right"
+                      ]
+                    },
+                    "midi": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 127
+                    },
+                    "voice": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "end": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "measure",
+                        "start",
+                        "hand"
+                      ],
+                      "properties": {
+                        "measure": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 1024
+                        },
+                        "start": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "hand": {
+                          "type": "string",
+                          "enum": [
+                            "left",
+                            "right"
+                          ]
+                        },
+                        "midi": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 127
+                        },
+                        "voice": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        }
+                      }
+                    },
+                    "value": {
+                      "type": "string",
+                      "enum": [
+                        "pp",
+                        "p",
+                        "mp",
+                        "mf",
+                        "f",
+                        "ff",
+                        "sfp"
+                      ]
+                    },
+                    "octaves": {
+                      "type": "integer",
+                      "enum": [
+                        -2,
+                        -1,
+                        1,
+                        2
+                      ]
+                    },
+                    "graceNotes": {
+                      "type": "array",
+                      "minItems": 1,
+                      "maxItems": 32,
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "pitches",
+                          "value"
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                          "pitches": {
+                            "type": "array",
+                            "minItems": 1,
+                            "maxItems": 32,
+                            "items": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 127
+                            }
+                          },
+                          "value": {
+                            "type": "string",
+                            "enum": [
+                              "8",
+                              "16"
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "placement": {
+                      "type": "string",
+                      "enum": [
+                        "above",
+                        "below"
+                      ]
                     }
                   }
                 }
