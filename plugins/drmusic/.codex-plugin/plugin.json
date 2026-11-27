@@ -1,15 +1,15 @@
 {
   "name": "drmusic",
-  "version": "1.3.1",
-  "description": "匯入鋼琴與吉他譜，產生雙手簡譜，並將建議指法與左手和弦寫入私人練習筆記。",
+  "version": "1.4.0",
+  "description": "匯入鋼琴與吉他譜，將鋼琴譜轉成雙手簡譜，存入私人曲庫或下載列印。",
   "homepage": "https://drmusic.rockdawn.chatgpt.site",
   "author": {
     "name": "DrMusic"
   },
   "interface": {
     "displayName": "DrMusic",
-    "shortDescription": "用 AI 匯入樂譜、轉簡譜與整理練習筆記",
-    "longDescription": "匯入鋼琴譜與吉他和弦譜，製作帳號專用樂譜檔。已存的鋼琴譜可轉成可列印簡譜，也可選擇將建議指法或左手和弦存入逐拍私人筆記。",
+    "shortDescription": "匯入鋼琴與吉他譜，把雙手簡譜存入曲庫或列印",
+    "longDescription": "匯入鋼琴譜與吉他和弦譜，製作帳號專用樂譜檔。曲庫內的鋼琴譜可另存為一份私人雙手簡譜，也可下載 HTML 列印。",
     "developerName": "DrMusic",
     "category": "Education & Research",
     "capabilities": [
