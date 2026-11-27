@@ -1,6 +1,6 @@
 # DrMusic
 
-外掛 1.4.0 包含三個 Skill。鋼琴譜用 `drmusic-score` 轉錄雙手音符，使用 .drm 檔。吉他和弦歌詞譜用 `drmusic-guitar-score`，保留和弦與歌詞位置、調性及段落，使用 .drmg 檔。兩種檔案都由 DrMusic 簽發，匯入時須使用原帳號。執行本機橋接器需要 Node.js 20 以上。
+外掛 1.4.1 包含三個 Skill。鋼琴譜用 `drmusic-score` 轉錄雙手音符，使用 .drm 檔。吉他和弦歌詞譜用 `drmusic-guitar-score`，保留和弦與歌詞位置、調性及段落，使用 .drmg 檔。兩種檔案都由 DrMusic 簽發，匯入時須使用原帳號。執行本機橋接器需要 Node.js 20 以上。
 
 ## 安裝到 Codex
 
