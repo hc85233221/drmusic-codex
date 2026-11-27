@@ -11,7 +11,7 @@ description: 把 DrMusic 雙手鋼琴譜轉成分行的傳統首調數字簡譜�
 
 從原稿抄錄和弦記號、歌詞及其在小節內的起點。和弦寫在 `chords: [{start,symbol}]`，歌詞寫在 `lyrics: [{start,text,verse?}]`。兩者的 `start` 均從小節開頭以四分音符為 1 計算，例如 4/4 拍的第二拍後半為 1.5。保留斜線低音、原字、空格與標點，多段歌詞用從 1 起算的 `verse` 對齊同一旋律。原稿缺詞、缺和弦，或落點無法辨讀時，省略相應項目。
 
-若使用者要替已有的簡譜補原稿書寫音、歌詞或和弦，讀取**該份簡譜**的 ID 和 revision，呼叫 `drm_add_piano_notation`，傳入 `id`、`expectedRevision` 與 `measures`。每項帶從 1 起算的 `measure` 及要補的 `notationNotes`、`chords`、`lyrics` 或 `notationMarks`。記號依原稿保留手別、聲部、落點與延音線／圓滑線的終點；原有演奏音決定是否重新起音。休止上的延長記號仍定位於該拍。強弱、兩種波音、倚音組、琶音線與八度標示按來源保留為同一份 notationMarks；八度標示只轉換書寫位置，保留演奏 MIDI。欄位與例子見隨附的[鋼琴轉錄格式](../drmusic-score/references/score.md)。書寫音只補小節缺少的層，照原稿保留同音的分段、時值與聲部，完成後讀回核對演奏 `notes` 維持原樣。同拍的和弦、同拍同段的歌詞各自保留完整群組和原順序。下一批使用回傳的 revision。「增加一個譜」才走下節的另存流程。
+若使用者要替已有的簡譜補原稿書寫音、歌詞或和弦，讀取**該份簡譜**的 ID 和 revision，呼叫 `drm_add_piano_notation`，傳入 `id`、`expectedRevision` 與 `measures`。每項帶從 1 起算的 `measure` 及要補的 `notationNotes`、`chords`、`lyrics` 或 `notationMarks`。記號依原稿保留手別、聲部、落點與延音線／圓滑線的終點；原有演奏音決定是否重新起音。休止上的延長記號仍定位於該拍。同拍的 espressivo 小形「<>」、強弱、兩種波音、倚音組、琶音線與八度標示按來源保留為同一份 notationMarks；八度標示只轉換書寫位置，保留演奏 MIDI。欄位與例子見隨附的[鋼琴轉錄格式](../drmusic-score/references/score.md)。書寫音只補小節缺少的層，照原稿保留同音的分段、時值與聲部，完成後讀回核對演奏 `notes` 維持原樣。同拍的和弦、同拍同段的歌詞各自保留完整群組和原順序。下一批使用回傳的 revision。「增加一個譜」才走下節的另存流程。
 
 ## 在曲庫增加一個譜
 
