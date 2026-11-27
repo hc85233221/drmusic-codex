@@ -21,10 +21,10 @@ description: 把 DrMusic 雙手鋼琴譜轉成首調數字簡譜。可在自己�
 node scripts/numbered.mjs "/path/to/score.json" -o "/path/to/numbered.html"
 ```
 
-大調以 1、小調以 6 為主音。若原譜缺調號，向使用者確認調性後才以例如 `--key "G minor"` 指定，並在交付時註明來源。保留原拍、小節、八度、臨時變音、休止、和音與左右手時值。核對首尾小節、音域及一段和音或延音後，交付檔案並說明使用的調性與記法。
+大調以 1、小調以 6 為主音。若原譜缺調號，向使用者確認調性後才以例如 `--key "G minor"` 指定，並在交付時註明來源。保留每小節的實際長度與局部拍號，依書寫音排版；未提供書寫層時依演奏音排版。核對八度、臨時變音、休止、和音與左右手時值。核對首尾小節、音域及一段和音或延音後，交付檔案並說明使用的調性與記法。
 
 ## 從原曲讀譜
 
 1. 使用曲主帳號的 DrMusic 連線呼叫 `drm_get_piano_score({id})`。成功時解析 `content[0].text` 的 JSON，保留第一頁的 `revision` 和 `score` 中的調性、拍號與速度。
-2. 每頁最多 256 個音符。只要 `next` 有值，就用相同 `id`、第一頁的 `revision` 和 `next` 給的 `startMeasure`、`noteOffset` 讀下一頁。第 i 個小節（i 從 0 起）放在總譜的 `measures[startMeasure-1+i]`。若首頁以外的頁面從同一小節中途續讀，核對已收音符數等於 `noteOffset` 再接上第一個小節的音符，保留原本的 `start`。
+2. 每頁最多 256 個演奏音和 256 個書寫音。只要 `next` 有值，就用相同 `id`、第一頁的 `revision` 和完整的 `next` 讀下一頁。將第 i 個小節（i 從 0 起）放回 `measures[startMeasure-1+i]`。若第一個小節跨頁，分別依 `noteOffset` 接上 `notes`、依 `notationOffset` 接上 `notationNotes`，缺省偏移為 0。續接前核對各層已收音符數與偏移相符，保留原始 `start`。缺少書寫層與明示空陣列的意義不同，應依原樣合併。
 3. 讀到 `next: null` 後核對小節數與 `totalMeasures` 一致，把重組的 `score` 存成私人工作目錄中的 JSON。遇到譜面版本衝突時，丟棄舊分頁，從第一頁重讀。
