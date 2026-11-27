@@ -26,6 +26,14 @@
 | 倚音 | `type: "grace"`，附 `graceNotes: [{pitches:[62],value:"16"}]`；pitches 是同時發聲的 MIDI，value 可用 "8" 或 "16"。依原稿次序記在主音錨點，不占用額外拍位。 |
 | 八度標示 | `type: "octaveShift"`，octaves 用 1、2（8va、15ma）或 −1、−2（8vb、15mb）。單音省略 end；跨事件標示依實際起訖指定同手的 end，含末音。保留原 MIDI；顯示時才換算為 MIDI − 12 × octaves。 |
 
+跨拍的漸強、漸弱與延音踏板分別用 `crescendo`、`decrescendo`、`pedal`。從原稿讀取起點與放開或收束的位置，以同一個 notationMark 存在起點小節。end 必填並且晚於起點。這三種區間的兩端可以落在休止；終點可為任一小節的右小節線，這時 `end.start` 等於該小節實際長度。例如左手從第 2 小節第 2 拍踩下，持續到第 3 小節（6/8）的終止線，存為：
+
+```json
+{"type":"pedal","start":1,"hand":"left","end":{"measure":3,"start":3,"hand":"left"}}
+```
+
+開合角度隨時間展開才是跨拍漸強／漸弱；單一音上的小形「<>」保留為 espressivo。換踏板時可讓前一區間終點與下一區間起點相接。起訖不清先核對原圖，保留演奏音、音量與時值原樣。
+
 若原稿印有和弦或歌詞，可在小節加入 `chords: [{start,symbol}]`、`lyrics: [{start,text,verse?}]`。起點以本小節的四分音符拍數計算，須小於小節的實際長度。保留原稿的和弦拼法、歌詞文字及同拍順序。分段歌詞以從 1 起算的 verse 對齊，省略即第一段。只填能從來源核對的內容。
 
 例如下列自創單小節用左右手同時起音，右手第二拍再彈 E。
