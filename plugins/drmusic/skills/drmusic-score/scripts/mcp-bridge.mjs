@@ -121,7 +121,7 @@ async function handle(message) {
           ? params.protocolVersion
           : "2025-11-25",
         capabilities: { tools: {} },
-        serverInfo: { name: "DrMusic", version: "1.8.1" },
+        serverInfo: { name: "DrMusic", version: "1.8.2" },
         instructions:
           "Use drm_connect to pair. For piano transcription use drmusic-score. For printable two-hand numbered notation or saving a private numbered score use drmusic-piano-study. For drum notation and .drmd use drmusic-drum-score. For guitar chord sheets and .drmg use drmusic-guitar-score and the guitar tools. Import an existing .drm using drm_import_package with the complete trimmed UTF-8 package.",
       },
