@@ -1,4 +1,4 @@
-import {measureTiming} from './measure-timing.mjs';
+import {measureTiming,groupOctaveMarks} from './measure-timing.mjs';
 /** Shared engraving for the offline CLI and the in-site reader. */
 const letters = 'CDEFGAB';
 const naturals = [0, 2, 4, 5, 7, 9, 11];
@@ -245,32 +245,27 @@ function attachSourceMarks(score,bars,hands,key) {
       return {lane:a.hand+v, lead:a.hand==='right' && v===0 && (a.midi===undefined || e.pitches?.[0].midi===a.midi),row:v,event:e};
     }
   }
-  score.measures.forEach((measure,i)=>{
-    const marks=[], octaveRuns=new Map();
-    for (const raw of [...(measure.notationMarks ?? [])].sort((a,b)=>a.start-b.start)) {
-      if (raw.type!=='octaveShift' || raw.end) {marks.push(raw);continue;}
-      const event=target(i,raw);
-      if (!event) continue;
-      const key=[event.lane,raw.octaves,raw.placement].join(':');
-      const previous=octaveRuns.get(key);
-      if (previous && Math.abs(previous.until-raw.start)<1e-7) {
-        previous.mark.end={measure:i+1,hand:raw.hand,start:raw.start,voice:raw.voice,midi:raw.midi};
-        previous.until=event.event.end;
-      } else {
-        const mark={...raw};
-        marks.push(mark);
-        octaveRuns.set(key,{mark,until:event.event.end});
-      }
-    }
+  const occupied=new Map();
+  groupOctaveMarks(score).forEach((marks,i)=>{
     for (const mark of marks) {
       const a=target(i,mark), j=mark.end ? mark.end.measure-1 : i;
       const b=mark.end ? target(j,mark.end) : a;
       if (!a || !b) continue;
+      let rank=0;
+      if (mark.end) {
+        const side=sourceSide(mark);
+        const lane=a.lane+side;
+        const levels=occupied.get(lane) ?? [];
+        const start=i+mark.start/bars[i].duration;
+        while ((levels[rank] ?? -1)>start+1e-8) rank++;
+        levels[rank]=j+mark.end.start/bars[j].duration;
+        occupied.set(lane,levels);
+      }
       const grace=mark.graceNotes?.map(n=>({value:n.value,pitches:n.pitches.map((p,i)=>pitchFor(p,key,n.spellings?.[i]))}));
       for (let k=i;k<=j;k++) {
         const bar=bars[k], first=k===i, last=k===j;
         const start=first?mark.start:0, until=last?(mark.end?.start ?? mark.start):bar.duration;
-        bar.sourceMarks.push({mark,grace,first,last,start,until,from:a.lane,to:b.lane,lead:a.lead&&b.lead});
+        bar.sourceMarks.push({mark,grace,rank,first,last,start,until,from:a.lane,to:b.lane,lead:a.lead&&b.lead});
         if (mark.type==='octaveShift') {
           for (const e of bar[mark.hand][a.row] ?? []) {
             if (e.pitches && e.start>=start-1e-8 && e.start<=until+1e-8) e.displayOctave=mark.octaves;
@@ -449,36 +444,40 @@ function connectBeams(columns, notes, meter) {
 const markIcon=(path,extra='')=>'<svg aria-hidden="true" viewBox="0 0 24 16" width="22" height="15"><path d="'+path+'" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>'+extra+'</svg>';
 const wave='M2 10 L6 5 10 10 14 5 18 10 22 5';
 const sourceSigns = {accent:markIcon('M5 4 L19 8 5 12'),marcato:markIcon('M7 13 L12 3 17 13'),
-  staccato:'•',tenuto:'–',fermata:markIcon('M3 12 Q12 -4 21 12','<circle cx="12" cy="10" r="1.7"/>'),
+  espressivo:markIcon('M11 4 L2 8 11 12 M13 4 L22 8 13 12'),staccato:'•',tenuto:'–',fermata:markIcon('M3 12 Q12 -4 21 12','<circle cx="12" cy="10" r="1.7"/>'),
   mordent:markIcon(wave),mordentInverted:markIcon(wave+' M12 2 V14'),arpeggio:markIcon('M12 1 Q7 3 12 5 T12 9 T12 13 L11 15')};
-const sourceNames = {accent:'重音',marcato:'強重音',staccato:'斷音',tenuto:'保持音',fermata:'延長記號',
+const sourceNames = {accent:'重音',marcato:'強重音',espressivo:'單音漸強漸弱',staccato:'斷音',tenuto:'保持音',fermata:'延長記號',
   mordent:'波音',mordentInverted:'反向波音',arpeggio:'琶音',dynamic:'力度',grace:'倚音',octaveShift:'八度記號',tie:'延音線',slur:'圓滑線'};
 
+function sourceSide(mark) {
+  return mark.placement ?? ((mark.type==='octaveShift' && mark.octaves<0) || mark.type==='dynamic' || mark.type==='tie'?'below':'above');
+}
 function sourceLane(parts, key, columns, side, lanePositions) {
   const elements=[], stacks=new Map(), firstBeat=columns[0].t, lastBeat=columns.at(-1).t;
-  const hasSpan=parts.some(p=>p.from===key && p.mark.end && p.until>=firstBeat && p.start<=lastBeat &&
-    (p.mark.placement ?? (p.mark.type==='tie' || (p.mark.type==='octaveShift' && p.mark.octaves<0)?'below':'above'))===side);
-  let layers=hasSpan?1:0;
+  const spanLevels=parts.reduce((n,p)=>p.from===key && p.mark.end && p.until>=firstBeat && p.start<=lastBeat &&
+    sourceSide(p.mark)===side ? Math.max(n,p.rank+1):n,0);
+  let layers=spanLevels;
   for (const part of parts) {
     const m=part.mark, type=m.type;
-    const position=m.placement ?? ((type==='octaveShift' && m.octaves<0) || type==='dynamic' || type==='tie'?'below':'above');
+    const position=sourceSide(m);
     if (position!==side || part.from!==key || part.until<firstBeat || part.start>lastBeat) continue;
     const start=columns.findIndex(c=>Math.abs(c.t-part.start)<1e-7);
     const end=columns.findIndex(c=>Math.abs(c.t-part.until)<1e-7);
     const begins=part.first && start>=0, ends=part.last && end>=0;
     if (!m.end && !begins) continue;
+    if (!Object.hasOwn(sourceNames,type)) continue;
     const label=sourceNames[type];
-    if (!label) continue;
     const col=begins?start:0;
-    const level=m.end?0:((stacks.get(col) ?? 0)+1);
-    if (!m.end) stacks.set(col,level);layers=Math.max(layers,level+1);
-    const attrs=' data-source-mark="'+type+'" aria-label="'+label+'" title="'+label+'"';
+    const level=m.end?part.rank:(stacks.get(col) ?? spanLevels);
+    if (!m.end) stacks.set(col,level+1);layers=Math.max(layers,level+1);
+    const description=m.midi===undefined?label:label+' · MIDI '+Number(m.midi);
+    const attrs=' data-source-mark="'+type+'" aria-label="'+description+'" title="'+description+'"';
     const grid='grid-row:'+ (level+1)+';grid-column:'+(col+1);
     if (type==='tie' || type==='slur' || (type==='octaveShift' && m.end)) {
       const right=ends?end:columns.length;
       const short=right===col;
       const placement=side==='below'?1:-1;
-      const dy=ends && part.from!==part.to ? (lanePositions.get(part.to+'note'+side)??0)-(lanePositions.get(part.from+side)??0)-10 : 0;
+      const dy=ends && part.from!==part.to ? (lanePositions.get(part.to+'note'+side)??0)-(lanePositions.get(part.from+side)??0)-10-level*21 : 0;
       const y1=begins?10:10+placement*7, y2=(ends?10:10+placement*7)+dy;
       const d='M0 '+y1+' C24 '+(10+placement*10)+' 76 '+(10+placement*10+dy)+' 100 '+y2;
       const text=type==='octaveShift'&&begins?octaveText(m.octaves):'';
@@ -490,7 +489,7 @@ function sourceLane(parts, key, columns, side, lanePositions) {
       if (type==='dynamic') sign=escape(m.value);
       if (type==='octaveShift') sign=octaveText(m.octaves);
       if (type==='fermata' && side==='below') sign='<span style="display:inline-flex;transform:rotate(180deg)">'+sign+'</span>';
-      if (type==='grace') sign=part.grace.map(g=>'<span class="jp-grace" data-value="'+g.value+'">'+g.pitches.map(pitchGlyph).join('')+'</span>').join('');
+      if (type==='grace') sign=part.grace.map(g=>'<span class="jp-grace" data-value="'+(g.value==='16'?'16':'8')+'">'+g.pitches.map(pitchGlyph).join('')+'</span>').join('');
       elements.push('<span class="jp-source-sign"'+attrs+' style="'+grid+'">'+sign+'</span>');
     }
   }
@@ -643,7 +642,7 @@ export const numberedCss = `
 .jp-source-span{position:relative;display:block;height:20px;margin-left:-8px;margin-right:-6px;overflow:visible}
 .jp-source-span.jp-span-start{margin-left:7px}.jp-source-span.jp-span-end{margin-right:-7px}.jp-source-span.jp-span-short{width:15px}
 .jp-source-span svg{display:block;width:100%;height:20px;overflow:visible}.jp-octave-rule{display:block;border-top:1px dashed currentColor;font:italic 13px Georgia,serif}
-.jp-grace{display:inline-flex;flex-direction:column;margin-right:2px;font:600 12px/1 serif;border-bottom:1px solid currentColor}.jp-grace[data-value="16"]{border-bottom:3px double currentColor}
+.jp-span-end .jp-octave-rule{border-right:1px solid currentColor;min-height:5px}.jp-grace{display:inline-flex;flex-direction:column;margin-right:2px;font:600 12px/1 serif;border-bottom:1px solid currentColor}.jp-grace[data-value="16"]{border-bottom:3px double currentColor}
 .jp-hand{position:absolute;left:0;top:-4px;font:10px/1.1 system-ui;color:#525d58}.jp-both .jp-notes{margin-top:9px}
 .jp-hits{position:absolute;inset:14px 6px 0 8px}.jp-hits button{grid-row:1;background:transparent;border:0;border-radius:2px;padding:0;min-width:0;cursor:pointer}
 @media screen{.jp-hits button:focus-visible{outline:2px solid #295c49;outline-offset:-2px;background:#40845a12}.jp-hits button:hover{background:#40845a16}.jp-bar[data-playing]{background:#43895f10}.jp-hits button[data-current]{box-shadow:inset 0 -3px #295c49}.jp-hits button[data-in-loop]{background:#40845a20}.jp-hits button[data-boundary]{border-left:2px solid #316a4c}}
