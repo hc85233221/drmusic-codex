@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "instruments": {
+    "kick": {
+      "label": "大鼓",
+      "english": "Bass Drum",
+      "staffStep": 1,
+      "head": "normal"
+    },
+    "snare": {
+      "label": "小鼓",
+      "english": "Snare",
+      "staffStep": 5,
+      "head": "normal"
+    },
+    "tomHigh": {
+      "label": "高音通鼓",
+      "english": "Tom 1",
+      "staffStep": 7,
+      "head": "normal"
+    },
+    "tomMid": {
+      "label": "中音通鼓",
+      "english": "Tom 2",
+      "staffStep": 6,
+      "head": "normal"
+    },
+    "floorTom": {
+      "label": "落地鼓",
+      "english": "Floor Tom",
+      "staffStep": 3,
+      "head": "normal"
+    },
+    "hiHatClosed": {
+      "label": "閉合踩鈸",
+      "english": "Hi-Hat",
+      "staffStep": 9,
+      "head": "cross"
+    },
+    "hiHatOpen": {
+      "label": "開放踩鈸",
+      "english": "Open Hi-Hat",
+      "staffStep": 9,
+      "head": "cross",
+      "markAbove": "openCircle"
+    },
+    "hiHatPedal": {
+      "label": "腳踏踩鈸",
+      "english": "Pedal Hi-Hat",
+      "staffStep": -1,
+      "head": "cross"
+    },
+    "ride": {
+      "label": "節奏鈸",
+      "english": "Ride",
+      "staffStep": 8,
+      "head": "cross"
+    },
+    "crash1": {
+      "label": "碎音鈸 1",
+      "english": "Crash 1",
+      "staffStep": 10,
+      "head": "cross",
+      "number": 1
+    },
+    "crash2": {
+      "label": "碎音鈸 2",
+      "english": "Crash 2",
+      "staffStep": 10,
+      "head": "cross",
+      "number": 2
+    },
+    "crash": {
+      "label": "碎音鈸（未分號）",
+      "english": "Crash",
+      "staffStep": 10,
+      "head": "cross"
+    },
+    "rideBell": {
+      "label": "節奏鈸鐘",
+      "english": "Ride Bell",
+      "staffStep": 8,
+      "head": "diamond"
+    },
+    "rim": {
+      "label": "鼓框",
+      "english": "Rim",
+      "staffStep": 5,
+      "head": "cross"
+    },
+    "tomLow": {
+      "label": "低音通鼓",
+      "english": "Low Tom",
+      "staffStep": 4,
+      "head": "normal"
+    },
+    "splash": {
+      "label": "小碎音鈸",
+      "english": "Splash",
+      "staffStep": 11,
+      "head": "cross"
+    },
+    "china": {
+      "label": "中國鈸",
+      "english": "China",
+      "staffStep": 12,
+      "head": "cross"
+    },
+    "cowbell": {
+      "label": "牛鈴",
+      "english": "Cowbell",
+      "staffStep": 7,
+      "head": "diamond"
+    }
+  }
+}
