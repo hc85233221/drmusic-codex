@@ -1,6 +1,6 @@
 # DrMusic
 
-外掛 1.3.1 包含三個 Skill。鋼琴譜用 `drmusic-score` 轉錄雙手音符，使用 .drm 檔。吉他和弦歌詞譜用 `drmusic-guitar-score`，保留和弦與歌詞位置、調性及段落，使用 .drmg 檔。兩種檔案都由 DrMusic 簽發，匯入時須使用原帳號。執行本機橋接器需要 Node.js 20 以上。
+外掛 1.4.0 包含三個 Skill。鋼琴譜用 `drmusic-score` 轉錄雙手音符，使用 .drm 檔。吉他和弦歌詞譜用 `drmusic-guitar-score`，保留和弦與歌詞位置、調性及段落，使用 .drmg 檔。兩種檔案都由 DrMusic 簽發，匯入時須使用原帳號。執行本機橋接器需要 Node.js 20 以上。
 
 ## 安裝到 Codex
 
@@ -12,13 +12,20 @@
 
 把下列文字貼到本機 Claude Code 對話。
 
-> 請從 https://github.com/hc85233221/drmusic-codex 取得 plugins/drmusic/skills 目錄下的 drmusic-score、drmusic-guitar-score 和 drmusic-piano-study，將三個完整資料夾並列安裝到 Claude Code 個人 skills 目錄（預設 ~/.claude/skills/）。已有舊版時更新官方檔案，遇到自訂變更先備份。確認 Node.js 20 以上，將 SCRIPT 替換為安裝後 drmusic-score/scripts/mcp-bridge.mjs 的完整絕對路徑，執行 claude mcp add --transport stdio --scope user drmusic -- node "SCRIPT"。已有相同設定時直接沿用。用 claude mcp get drmusic 檢查連線。
+> 請從 https://github.com/hc85233221/drmusic-codex 取得 plugins/drmusic/skills 目錄下的 drmusic-score、drmusic-guitar-score 和 drmusic-piano-study，將三個完整資料夾並列安裝到 Claude Code 個人 skills 目錄（預設 ~/.claude/skills/）。已有舊版時更新官方檔案，並依下方升級說明清理已撤下的檔案。遇到自訂變更先備份。確認 Node.js 20 以上，將 SCRIPT 替換為安裝後 drmusic-score/scripts/mcp-bridge.mjs 的完整絕對路徑，執行 claude mcp add --transport stdio --scope user drmusic -- node "SCRIPT"。已有相同設定時直接沿用。用 claude mcp get drmusic 檢查連線。
 
 三個 Skill 共用一個 drmusic 連線。安裝或更新後開新對話，說「連接 DrMusic」。用同機瀏覽器登入正確帳號，開啟配對連結並按「連接這個帳號」。使用期間保持該分頁開啟。
 
-## 鋼琴練習
+### 從舊版升級 Claude Code
 
-在 Codex 輸入 `$drmusic:drmusic-piano-study`，或在 Claude Code 輸入 `/drmusic-piano-study`。提供自己的 DrMusic 曲目連結，例如「把這首鋼琴譜轉成雙手簡譜」或「只把建議指法寫入第 1 至 4 小節備忘錄」。也可以只要求左手和弦，或一次要求多項。鋼琴練習使用 drm_get_piano_score 讀譜，使用 drm_annotate_piano_study 寫入選取的建議。
+舊版曾隨附 `drmusic-piano-study/scripts/advice.mjs`。只在已確認屬於 DrMusic 的安裝目錄，核對此檔 SHA-256。若為官方 1.3.1 的 `7c96bd458da3f126225eb4ca432b7f63aed9c3d0db32bb71fd42a6247be56dca` 或 1.3.0 的 `056efcd59e465d79d0e9af161d48bd642da71d07a72b5268128acce464f7a8f4`，移除該檔。若內容有自訂，先將該檔備份到 Skills 目錄外，保留其他個人檔案。開新對話確認列出的工具包含 `drm_create_numbered_score`。
+
+## 鋼琴轉雙手簡譜
+
+在 Codex 輸入 `$drmusic:drmusic-piano-study`，或在 Claude Code 輸入 `/drmusic-piano-study`，並附上自己的鋼琴譜連結。
+
+- 「把這首變成簡譜，增加一個譜」會用 `drm_create_numbered_score` 在私人曲庫新增可直接開啟的簡譜。
+- 「只給我可列印的簡譜」會用 `drm_get_piano_score` 取得曲主專用下載連結。也可提供本機鋼琴 JSON，在本機產生 HTML。
 
 ## 使用吉他譜
 
