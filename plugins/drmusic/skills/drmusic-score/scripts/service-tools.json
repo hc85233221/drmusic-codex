@@ -145,6 +145,7 @@
                           "enum": [
                             "accent",
                             "marcato",
+                            "espressivo",
                             "staccato",
                             "tenuto",
                             "fermata",
@@ -550,6 +551,7 @@
                           "enum": [
                             "accent",
                             "marcato",
+                            "espressivo",
                             "staccato",
                             "tenuto",
                             "fermata",
@@ -2333,6 +2335,7 @@
                       "enum": [
                         "accent",
                         "marcato",
+                        "espressivo",
                         "staccato",
                         "tenuto",
                         "fermata",
