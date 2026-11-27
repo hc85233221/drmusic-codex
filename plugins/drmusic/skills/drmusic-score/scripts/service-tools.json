@@ -33,9 +33,10 @@
               "maxLength": 60
             },
             "bpm": {
-              "type": "integer",
+              "type": "number",
               "minimum": 30,
-              "maximum": 240
+              "maximum": 240,
+              "description": "Quarter-note BPM; decimal tempos such as 77.5 are supported."
             },
             "timeSignature": {
               "type": "array",
@@ -57,6 +58,20 @@
                   "notes"
                 ],
                 "properties": {
+                  "timeSignature": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "items": {
+                      "type": "integer"
+                    },
+                    "description": "Local time signature for this measure only. Omit to use score.timeSignature."
+                  },
+                  "duration": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "description": "Actual measure length in quarter beats (e.g. 0.5 for a pickup). Defaults to its effective meter length."
+                  },
                   "notes": {
                     "type": "array",
                     "items": {
@@ -77,12 +92,12 @@
                         "start": {
                           "type": "number",
                           "minimum": 0,
-                          "description": "Quarter beats from start of measure."
+                          "description": "Quarter beats from the start of the measure."
                         },
                         "duration": {
                           "type": "number",
                           "exclusiveMinimum": 0,
-                          "description": "Quarter beats. A tie can span multiple measures."
+                          "description": "Duration in quarter beats."
                         },
                         "hand": {
                           "type": "string",
@@ -92,7 +107,51 @@
                           ]
                         }
                       }
-                    }
+                    },
+                    "description": "Performed notes, including short ornaments. A sustain may cross bar lines."
+                  },
+                  "notationNotes": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "midi",
+                        "start",
+                        "duration",
+                        "hand"
+                      ],
+                      "properties": {
+                        "midi": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 127
+                        },
+                        "start": {
+                          "type": "number",
+                          "minimum": 0,
+                          "description": "Quarter beats from the start of the measure."
+                        },
+                        "duration": {
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "description": "Duration in quarter beats."
+                        },
+                        "hand": {
+                          "type": "string",
+                          "enum": [
+                            "right",
+                            "left"
+                          ]
+                        },
+                        "voice": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        }
+                      }
+                    },
+                    "description": "Optional separate written notes within this bar. Omit to engrave performed notes. An empty array is a written rest."
                   }
                 }
               }
@@ -172,9 +231,10 @@
               "maxLength": 60
             },
             "bpm": {
-              "type": "integer",
+              "type": "number",
               "minimum": 30,
-              "maximum": 240
+              "maximum": 240,
+              "description": "Quarter-note BPM; decimal tempos such as 77.5 are supported."
             },
             "timeSignature": {
               "type": "array",
@@ -196,6 +256,20 @@
                   "notes"
                 ],
                 "properties": {
+                  "timeSignature": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "items": {
+                      "type": "integer"
+                    },
+                    "description": "Local time signature for this measure only. Omit to use score.timeSignature."
+                  },
+                  "duration": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "description": "Actual measure length in quarter beats (e.g. 0.5 for a pickup). Defaults to its effective meter length."
+                  },
                   "notes": {
                     "type": "array",
                     "items": {
@@ -216,12 +290,12 @@
                         "start": {
                           "type": "number",
                           "minimum": 0,
-                          "description": "Quarter beats from start of measure."
+                          "description": "Quarter beats from the start of the measure."
                         },
                         "duration": {
                           "type": "number",
                           "exclusiveMinimum": 0,
-                          "description": "Quarter beats. A tie can span multiple measures."
+                          "description": "Duration in quarter beats."
                         },
                         "hand": {
                           "type": "string",
@@ -231,7 +305,51 @@
                           ]
                         }
                       }
-                    }
+                    },
+                    "description": "Performed notes, including short ornaments. A sustain may cross bar lines."
+                  },
+                  "notationNotes": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "midi",
+                        "start",
+                        "duration",
+                        "hand"
+                      ],
+                      "properties": {
+                        "midi": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 127
+                        },
+                        "start": {
+                          "type": "number",
+                          "minimum": 0,
+                          "description": "Quarter beats from the start of the measure."
+                        },
+                        "duration": {
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "description": "Duration in quarter beats."
+                        },
+                        "hand": {
+                          "type": "string",
+                          "enum": [
+                            "right",
+                            "left"
+                          ]
+                        },
+                        "voice": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        }
+                      }
+                    },
+                    "description": "Optional separate written notes within this bar. Omit to engrave performed notes. An empty array is a written rest."
                   }
                 }
               }
@@ -699,7 +817,7 @@
   },
   {
     "name": "drm_get_piano_score",
-    "description": "Read one owned piano score with its original key when provided and all written notes. numberedUrl downloads printable numbered notation when opened by the owner. If needed append &key= with the URL-encoded user-confirmed key, e.g. Bb major. Each page has up to 256 notes. Follow next with the same id and revision until null. Append the first measure at noteOffset when continuing inside a dense measure.",
+    "description": "Read one owned piano score with its original key when provided and all written notes. numberedUrl downloads printable numbered notation when opened by the owner. If needed append &key= with the URL-encoded user-confirmed key, e.g. Bb major. Each page has up to 256 performed and 256 written notes. Follow next with the same id and revision until null. Append the first measure at noteOffset (performed) and notationOffset (written, default zero) when continuing inside a dense measure.",
     "inputSchema": {
       "type": "object",
       "additionalProperties": false,
@@ -729,6 +847,12 @@
           "default": 8
         },
         "noteOffset": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 16000,
+          "default": 0
+        },
+        "notationOffset": {
           "type": "integer",
           "minimum": 0,
           "maximum": 16000,
