@@ -72,6 +72,61 @@
                     "exclusiveMinimum": 0,
                     "description": "Actual measure length in quarter beats (e.g. 0.5 for a pickup). Defaults to its effective meter length."
                   },
+                  "chords": {
+                    "type": "array",
+                    "maxItems": 256,
+                    "description": "Printed chord symbols above the music. Preserve the source spelling.",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "start",
+                        "symbol"
+                      ],
+                      "properties": {
+                        "start": {
+                          "type": "number",
+                          "minimum": 0,
+                          "description": "Quarter beats from this measure’s start, strictly before its actual end."
+                        },
+                        "symbol": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 64
+                        }
+                      }
+                    }
+                  },
+                  "lyrics": {
+                    "type": "array",
+                    "maxItems": 256,
+                    "description": "Original lyrics below the music. Verse defaults to 1. Keep the source order for multiple syllables on a single note.",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "start",
+                        "text"
+                      ],
+                      "properties": {
+                        "start": {
+                          "type": "number",
+                          "minimum": 0,
+                          "description": "Quarter beats from this measure’s start, strictly before its actual end."
+                        },
+                        "text": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 256
+                        },
+                        "verse": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 32
+                        }
+                      }
+                    }
+                  },
                   "notes": {
                     "type": "array",
                     "items": {
@@ -269,6 +324,61 @@
                     "type": "number",
                     "exclusiveMinimum": 0,
                     "description": "Actual measure length in quarter beats (e.g. 0.5 for a pickup). Defaults to its effective meter length."
+                  },
+                  "chords": {
+                    "type": "array",
+                    "maxItems": 256,
+                    "description": "Printed chord symbols above the music. Preserve the source spelling.",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "start",
+                        "symbol"
+                      ],
+                      "properties": {
+                        "start": {
+                          "type": "number",
+                          "minimum": 0,
+                          "description": "Quarter beats from this measure’s start, strictly before its actual end."
+                        },
+                        "symbol": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 64
+                        }
+                      }
+                    }
+                  },
+                  "lyrics": {
+                    "type": "array",
+                    "maxItems": 256,
+                    "description": "Original lyrics below the music. Verse defaults to 1. Keep the source order for multiple syllables on a single note.",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "start",
+                        "text"
+                      ],
+                      "properties": {
+                        "start": {
+                          "type": "number",
+                          "minimum": 0,
+                          "description": "Quarter beats from this measure’s start, strictly before its actual end."
+                        },
+                        "text": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 256
+                        },
+                        "verse": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 32
+                        }
+                      }
+                    }
                   },
                   "notes": {
                     "type": "array",
@@ -969,7 +1079,7 @@
   },
   {
     "name": "drm_add_piano_notation",
-    "description": "Add missing original written notation to selected measures of an owned piano score, at its existing ID. Read expectedRevision with drm_get_piano_score first. Use only verified original notation. The batch is atomic. Existing identical layers are acknowledged, different ones cannot be replaced. Preserve the order of written notes on retries.",
+    "description": "Add verified source notation to an owned piano score or numbered snapshot at its existing ID. Both accept original written notes, timed chord symbols and verse lyrics. Use the target score’s own ID and revision. Written notes are added only when the measure lacks a written layer and never replace performed notes. Read expectedRevision with drm_get_piano_score first. Use only verified original notation. The batch is atomic. Existing identical data is acknowledged. New text anchors or verses can be appended. A conflicting group at the same beat and verse is rejected. Preserve the order of notes and same-beat text on retries.",
     "inputSchema": {
       "type": "object",
       "additionalProperties": false,
@@ -995,10 +1105,81 @@
             "type": "object",
             "additionalProperties": false,
             "required": [
-              "measure",
-              "notationNotes"
+              "measure"
+            ],
+            "anyOf": [
+              {
+                "required": [
+                  "notationNotes"
+                ]
+              },
+              {
+                "required": [
+                  "chords"
+                ]
+              },
+              {
+                "required": [
+                  "lyrics"
+                ]
+              }
             ],
             "properties": {
+              "chords": {
+                "type": "array",
+                "maxItems": 256,
+                "description": "Printed chord symbols above the music. Preserve the source spelling.",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "start",
+                    "symbol"
+                  ],
+                  "properties": {
+                    "start": {
+                      "type": "number",
+                      "minimum": 0,
+                      "description": "Quarter beats from this measure’s start, strictly before its actual end."
+                    },
+                    "symbol": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64
+                    }
+                  }
+                }
+              },
+              "lyrics": {
+                "type": "array",
+                "maxItems": 256,
+                "description": "Original lyrics below the music. Verse defaults to 1. Keep the source order for multiple syllables on a single note.",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "start",
+                    "text"
+                  ],
+                  "properties": {
+                    "start": {
+                      "type": "number",
+                      "minimum": 0,
+                      "description": "Quarter beats from this measure’s start, strictly before its actual end."
+                    },
+                    "text": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 256
+                    },
+                    "verse": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 32
+                    }
+                  }
+                }
+              },
               "measure": {
                 "type": "integer",
                 "minimum": 1,
