@@ -900,6 +900,167 @@
     }
   },
   {
+    "name": "drm_store_private_attachment",
+    "description": "Store one private original on a score you own at a fixed position. Supply exactly one source: legacyFile for an approved migration, or pdfBase64 for a local PDF. Returns the length and SHA-256 calculated by reading the stored bytes. A different original cannot replace an occupied position.",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scoreId",
+        "position",
+        "filename",
+        "contentType",
+        "sha256",
+        "size"
+      ],
+      "properties": {
+        "scoreId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "position": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        },
+        "filename": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "description": "Original basename, including the file extension."
+        },
+        "contentType": {
+          "type": "string",
+          "enum": [
+            "application/pdf",
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+          ]
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 25165824,
+          "description": "Exact source byte length."
+        },
+        "legacyFile": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}\\.(?:jpg|jpeg|png|webp|pdf)$",
+          "description": "For the approved legacy-library owner only. Basename under the fixed legacy /uploads/ directory."
+        },
+        "pdfBase64": {
+          "type": "string",
+          "maxLength": 1048576,
+          "description": "Standard padded base64 of a user-selected local PDF, at most 768 KiB decoded."
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "drm_add_piano_notation",
+    "description": "Add missing original written notation to selected measures of an owned piano score, at its existing ID. Read expectedRevision with drm_get_piano_score first. Use only verified original notation. The batch is atomic. Existing identical layers are acknowledged, different ones cannot be replaced. Preserve the order of written notes on retries.",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "expectedRevision",
+        "measures"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "expectedRevision": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$"
+        },
+        "measures": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1024,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "measure",
+              "notationNotes"
+            ],
+            "properties": {
+              "measure": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1024,
+                "description": "One-based measure number in the owned score."
+              },
+              "notationNotes": {
+                "type": "array",
+                "maxItems": 16000,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "midi",
+                    "start",
+                    "duration",
+                    "hand"
+                  ],
+                  "properties": {
+                    "midi": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 127
+                    },
+                    "start": {
+                      "type": "number",
+                      "minimum": 0,
+                      "description": "Quarter beats from the start of the measure."
+                    },
+                    "duration": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "description": "Duration in quarter beats."
+                    },
+                    "hand": {
+                      "type": "string",
+                      "enum": [
+                        "right",
+                        "left"
+                      ]
+                    },
+                    "voice": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true
+    }
+  },
+  {
     "name": "drm_set_guitar_video",
     "description": "Set or replace the music video on one owned guitar chart using its existing ID. Verify the artist and song first. To remove the link pass null. Changing the video affects its shared view.",
     "inputSchema": {
