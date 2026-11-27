@@ -20,6 +20,7 @@
 
 | 原稿 | notationMarks 寫法 |
 | --- | --- |
+| 單拍漸強漸弱 | 原稿同一音上的小形「<>」（espressivo）用 `type: "espressivo"`，定位該音的起拍，省略 end；跨拍漸強或漸弱不可縮成此記號。 |
 | 強弱 | `type: "dynamic"`，value 保留 pp、p、mp、mf、f、ff 或 sfp。 |
 | 上下波音、琶音線 | 依原件的 ornament 種類保留 `mordent` 或 `mordentInverted`；明示琶音線用 `arpeggio`。 |
 | 倚音 | `type: "grace"`，附 `graceNotes: [{pitches:[62],value:"16"}]`；pitches 是同時發聲的 MIDI，value 可用 "8" 或 "16"。依原稿次序記在主音錨點，不占用額外拍位。 |
