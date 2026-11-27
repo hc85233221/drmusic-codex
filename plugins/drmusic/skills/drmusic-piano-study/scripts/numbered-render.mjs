@@ -234,6 +234,7 @@ export function buildNumberedScore(score, { key: override } = {}) {
 
 // Resolve source voice numbers before projecting a chord to its top note.
 function attachSourceMarks(score,bars,hands,key) {
+  const timing=measureTiming(score);
   function target(i,a) {
     const rows=bars[i]?.[a.hand];
     if (!rows) return;
@@ -245,11 +246,34 @@ function attachSourceMarks(score,bars,hands,key) {
       return {lane:a.hand+v, lead:a.hand==='right' && v===0 && (a.midi===undefined || e.pitches?.[0].midi===a.midi),row:v,event:e};
     }
   }
+  // A source may specify the written continuation inside a single sounding note.
+  // Make it a printed attack before resolving mark endpoints, keeping the original event intact.
+  function splitAt(i,anchor) {
+    const hit=target(i,anchor);
+    if (!hit || Math.abs(hit.event.start-anchor.start)<1e-7) return;
+    const rows=bars[i][anchor.hand][hit.row], event=hit.event;
+    const left={...event,end:anchor.start,tieOut:true};
+    const right={...event,start:anchor.start,tieIn:true};
+    rows.splice(rows.indexOf(event),1,left,right);
+  }
+  score.measures.forEach((bar,i)=>{
+    for (const mark of bar.notationMarks ?? []) if (mark.type==='tie' && mark.end) {
+      splitAt(i,mark);
+      splitAt(mark.end.measure-1,mark.end);
+    }
+  });
+  function directionTarget(i,anchor) {
+    const rows=bars[i][anchor.hand];
+    const found=rows.findIndex((_,n)=>(hands[anchor.hand][n]?.[0]?.voice ?? n)===anchor.voice);
+    const row=found<0?0:found;
+    return {lane:anchor.hand+row,lead:anchor.hand==='right' && row===0,row};
+  }
   const occupied=new Map();
   groupOctaveMarks(score).forEach((marks,i)=>{
     for (const mark of marks) {
-      const a=target(i,mark), j=mark.end ? mark.end.measure-1 : i;
-      const b=mark.end ? target(j,mark.end) : a;
+      const resolve=isDirection(mark.type)?directionTarget:target;
+      const a=resolve(i,mark), j=mark.end ? mark.end.measure-1 : i;
+      const b=mark.end ? resolve(j,mark.end) : a;
       if (!a || !b) continue;
       let rank=0;
       if (mark.end) {
@@ -265,7 +289,8 @@ function attachSourceMarks(score,bars,hands,key) {
       for (let k=i;k<=j;k++) {
         const bar=bars[k], first=k===i, last=k===j;
         const start=first?mark.start:0, until=last?(mark.end?.start ?? mark.start):bar.duration;
-        bar.sourceMarks.push({mark,grace,rank,first,last,start,until,from:a.lane,to:b.lane,lead:a.lead&&b.lead});
+        const absoluteStart=timing.starts[i]+mark.start, absoluteEnd=timing.starts[j]+(mark.end?.start ?? mark.start);
+        bar.sourceMarks.push({mark,grace,rank,first,last,start,until,origin:timing.starts[k],absoluteStart,absoluteEnd,from:a.lane,to:b.lane,lead:a.lead&&b.lead});
         if (mark.type==='octaveShift') {
           for (const e of bar[mark.hand][a.row] ?? []) {
             if (e.pitches && e.start>=start-1e-8 && e.start<=until+1e-8) e.displayOctave=mark.octaves;
@@ -306,8 +331,8 @@ function symbols(events, topOnly) {
       const group = topOnly ? event.pitches?.slice(0, 1) : event.pitches;
       const pitches = event.displayOctave ? group?.map(p=>({...p,octave:p.octave-event.displayOctave})) : group;
       items.push({start, duration, pitches, dash, rhythm: short ?? {lines:0, exact:duration < 1},
-        tieIn: !!event.pitches && (((event.tieIn || pitches?.some(p => p.tieIn)) && !pitches?.some(p=>event.sourceIn?.includes(p.midi)) && !continuation) || (continuation && !dash)),
-        tieOut: !!event.pitches && (event.tieOut || pitches?.some(p => p.tieOut)) && !pitches?.some(p=>event.sourceOut?.includes(p.midi)) && duration === remaining});
+        tieIn: !!event.pitches && ((pitches?.some(p=>(event.tieIn || p.tieIn) && !event.sourceIn?.includes(p.midi)) && !continuation) || (continuation && !dash)),
+        tieOut: !!event.pitches && pitches?.some(p=>(event.tieOut || p.tieOut) && !event.sourceOut?.includes(p.midi)) && duration === remaining});
       previousDuration = duration;
       start = duration === remaining ? event.end : snap(start + duration);
     }
@@ -371,10 +396,10 @@ function prepareBar(bar, index, both, extraOffsets) {
   const marks=bar.sourceMarks.filter(m=>both || m.lead);
   for (const m of marks) {
     if (m.first) reserve(m.start, m.grace ? Math.max(34, m.grace.length*15) : 18);
-    if (m.last && m.mark.end) reserve(m.until,18);
+    if (m.last && m.mark.end && m.until<bar.duration) reserve(m.until,18);
   }
   const ordered = [...widths.keys()].sort((a,b) => a-b);
-  const columns = ordered.map((t,i) => ({t, width:Math.max(widths.get(t), 30 * Math.min(2,(ordered[i+1] ?? bar.duration)-t))}));
+  const columns = ordered.map((t,i) => ({t, until:ordered[i+1] ?? bar.duration, width:Math.max(widths.get(t), 30 * Math.min(2,(ordered[i+1] ?? bar.duration)-t))}));
   return {index, bar, voices, chords, lyrics, columns, marks};
 }
 
@@ -447,10 +472,11 @@ const sourceSigns = {accent:markIcon('M5 4 L19 8 5 12'),marcato:markIcon('M7 13 
   espressivo:markIcon('M11 4 L2 8 11 12 M13 4 L22 8 13 12'),staccato:'•',tenuto:'–',fermata:markIcon('M3 12 Q12 -4 21 12','<circle cx="12" cy="10" r="1.7"/>'),
   mordent:markIcon(wave),mordentInverted:markIcon(wave+' M12 2 V14'),arpeggio:markIcon('M12 1 Q7 3 12 5 T12 9 T12 13 L11 15')};
 const sourceNames = {accent:'重音',marcato:'強重音',espressivo:'單音漸強漸弱',staccato:'斷音',tenuto:'保持音',fermata:'延長記號',
-  mordent:'波音',mordentInverted:'反向波音',arpeggio:'琶音',dynamic:'力度',grace:'倚音',octaveShift:'八度記號',tie:'延音線',slur:'圓滑線'};
+  mordent:'波音',mordentInverted:'反向波音',arpeggio:'琶音',crescendo:'漸強',decrescendo:'漸弱',pedal:'延音踏板',dynamic:'力度',grace:'倚音',octaveShift:'八度記號',tie:'延音線',slur:'圓滑線'};
 
+function isDirection(type) { return type==='crescendo' || type==='decrescendo' || type==='pedal'; }
 function sourceSide(mark) {
-  return mark.placement ?? ((mark.type==='octaveShift' && mark.octaves<0) || mark.type==='dynamic' || mark.type==='tie'?'below':'above');
+  return mark.placement ?? ((mark.type==='octaveShift' && mark.octaves<0) || isDirection(mark.type) || mark.type==='dynamic' || mark.type==='tie'?'below':'above');
 }
 function sourceLane(parts, key, columns, side, lanePositions) {
   const elements=[], stacks=new Map(), firstBeat=columns[0].t, lastBeat=columns.at(-1).t;
@@ -473,6 +499,26 @@ function sourceLane(parts, key, columns, side, lanePositions) {
     const description=m.midi===undefined?label:label+' · MIDI '+Number(m.midi);
     const attrs=' data-source-mark="'+type+'" aria-label="'+description+'" title="'+description+'"';
     const grid='grid-row:'+ (level+1)+';grid-column:'+(col+1);
+    if (isDirection(type)) {
+      // A beat on a dense fragment boundary is the previous fragment's right edge.
+      // Its release hook belongs there once, not under the next note as well.
+      if (part.last && firstBeat>0 && Math.abs(part.until-firstBeat)<1e-7 && part.start<firstBeat) continue;
+      const endAtBarStart=part.last && !part.first && part.until===0;
+      const stopAtEdge=part.last && Math.abs(part.until-columns.at(-1).until)<1e-7;
+      const endsHere=ends || stopAtEdge;
+      const endCol=ends?end:columns.length;
+      const xRight=Math.max(col+2,endCol+1);
+      const phase=t=>(part.origin+t-part.absoluteStart)/(part.absoluteEnd-part.absoluteStart);
+      const step=type==='crescendo'?t=>5*t:t=>5*(1-t);
+      const size1=step(begins?0:phase(firstBeat)),size2=step(endsHere?1:phase(columns.at(-1).until));
+      const d=type==='pedal'?('M0 '+(begins?'7':'15')+' V15 H100'+(endsHere?' V7':'')):
+        ('M0 '+(10-size1)+' L100 '+(10-size2)+' M0 '+(10+size1)+' L100 '+(10+size2));
+      elements.push('<span class="jp-source-span jp-direction'+(begins?' jp-span-start':'')+'"'+attrs+
+        ' style="'+grid+' / '+xRight+(endAtBarStart?';width:7px':'')+'">'+(type==='pedal' && begins?'<i class="jp-ped-label">Ped.</i>':'')+
+        '<svg viewBox="0 0 100 20" preserveAspectRatio="none" aria-hidden="true"><path d="'+d+
+        '" fill="none" stroke="currentColor" stroke-width="1.4" vector-effect="non-scaling-stroke"/></svg></span>');
+      continue;
+    }
     if (type==='tie' || type==='slur' || (type==='octaveShift' && m.end)) {
       const right=ends?end:columns.length;
       const short=right===col;
@@ -641,7 +687,7 @@ export const numberedCss = `
 .jp-source-sign[data-source-mark=dynamic]{font:bold italic 17px/20px Georgia,serif}
 .jp-source-span{position:relative;display:block;height:20px;margin-left:-8px;margin-right:-6px;overflow:visible}
 .jp-source-span.jp-span-start{margin-left:7px}.jp-source-span.jp-span-end{margin-right:-7px}.jp-source-span.jp-span-short{width:15px}
-.jp-source-span svg{display:block;width:100%;height:20px;overflow:visible}.jp-octave-rule{display:block;border-top:1px dashed currentColor;font:italic 13px Georgia,serif}
+.jp-direction{margin-right:0}.jp-ped-label{position:absolute;left:2px;top:-2px;font:italic 13px/16px Georgia,serif}.jp-source-span svg{display:block;width:100%;height:20px;overflow:visible}.jp-octave-rule{display:block;border-top:1px dashed currentColor;font:italic 13px Georgia,serif}
 .jp-span-end .jp-octave-rule{border-right:1px solid currentColor;min-height:5px}.jp-grace{display:inline-flex;flex-direction:column;margin-right:2px;font:600 12px/1 serif;border-bottom:1px solid currentColor}.jp-grace[data-value="16"]{border-bottom:3px double currentColor}
 .jp-hand{position:absolute;left:0;top:-4px;font:10px/1.1 system-ui;color:#525d58}.jp-both .jp-notes{margin-top:9px}
 .jp-hits{position:absolute;inset:14px 6px 0 8px}.jp-hits button{grid-row:1;background:transparent;border:0;border-radius:2px;padding:0;min-width:0;cursor:pointer}
