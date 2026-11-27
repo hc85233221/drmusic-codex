@@ -24,4 +24,4 @@ description: 將吉他和弦歌詞譜照片、PDF 或檔案轉錄為 DrMusic 吉
 - 要求製作吉他檔時，使用 drm_package_guitar_score，將回傳的 package 原樣寫成 UTF-8，使用回傳的 .drmg 檔名。
 - 要求製檔並匯入時，先交付檔案，再將同一個 package 送入 drm_import_guitar_package。收到既有 .drmg 時，讀取完整 UTF-8 封裝，交由原簽發帳號匯入。
 - 僅要求直接上傳時，使用 drm_publish_guitar_score。同一次操作沿用相同 requestId。核對回傳的樂譜 ID 與連結，傳輸中斷時先查 drm_list_scores 確認結果。
-- 有原譜影像時，用樂譜 ID 呼叫 drm_attach_original 保存私人 JPEG 或 PNG。每曲有一個附圖欄位，MCP 最多 768 KiB。多頁原譜先保留原件，再製作清晰的整頁拼圖。若無法在限制內保存清晰副本，告知使用者哪些原圖已保存。單獨製檔時保留原圖，待匯入取得 ID 後再附上。
+- 單張私人 JPEG 或 PNG 可用樂譜 ID 呼叫 `drm_attach_original`，上限為 768 KiB。移轉獲授權的舊庫原檔，或保存 768 KiB 以內的本機 PDF 時，用 `drm_store_private_attachment` 依原始順序逐檔儲存，核對回傳的長度及 SHA-256。本機多張圖片或較大的 PDF 可經曲主已連接的配對移轉器逐檔傳送。單獨製檔時保留原圖，待匯入取得 ID 後再附上。
