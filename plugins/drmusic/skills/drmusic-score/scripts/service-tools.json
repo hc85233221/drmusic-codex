@@ -1,5 +1,87 @@
 [
   {
+    "name": "drm_create_exchange_link",
+    "description": "For the signed-in owner, create or retrieve a bearer download URL for a portable musical snapshot of this one score. Anyone with access to the site and link can download the .drm or import it into their own library. Return the URL only when the user requests sharing.",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "destructiveHint": false
+    }
+  },
+  {
+    "name": "drm_revoke_exchange_link",
+    "description": "Revoke the active exchange URL for one owned score. Previously downloaded files and independent imported copies remain usable.",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "destructiveHint": true
+    }
+  },
+  {
+    "name": "drm_import_exchange",
+    "description": "Import a peer’s portable DrMusic score into the signed-in recipient’s private library. Pass the supplied DrMusic exchange URL directly without fetching it, or read the selected DRMX1. text .drm into package. The returned URL opens the recipient’s playable copy; retrying the link or file deduplicates.",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "url"
+          ]
+        },
+        {
+          "required": [
+            "package"
+          ]
+        }
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "package": {
+          "type": "string",
+          "maxLength": 921602
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "destructiveHint": false
+    }
+  },
+  {
     "name": "drm_publish_score",
     "description": "Transcribe the supplied sheet photo into playable notes, then seal and upload the score to the signed-in DrMusic account. Use rests as gaps, simultaneous starts for chords, and both hands where written. Ask about unreadable notes before uploading. The returned URL opens the score.",
     "inputSchema": {
@@ -1481,7 +1563,14 @@
                               "symbol": {
                                 "type": "string",
                                 "maxLength": 60,
-                                "minLength": 1
+                                "minLength": 1,
+                                "description": "Printed letter chord or Arabic/Roman degree symbol. Put only actual chord markings here; keep melody numerals in the line text."
+                              },
+                              "keyChange": {
+                                "type": "string",
+                                "maxLength": 60,
+                                "minLength": 1,
+                                "description": "A single new written major/minor key, effective at this chord and carried across lines and sections until the next change. Preserve order at equal at offsets."
                               },
                               "duration": {
                                 "type": "number",
@@ -1717,7 +1806,14 @@
                               "symbol": {
                                 "type": "string",
                                 "maxLength": 60,
-                                "minLength": 1
+                                "minLength": 1,
+                                "description": "Printed letter chord or Arabic/Roman degree symbol. Put only actual chord markings here; keep melody numerals in the line text."
+                              },
+                              "keyChange": {
+                                "type": "string",
+                                "maxLength": 60,
+                                "minLength": 1,
+                                "description": "A single new written major/minor key, effective at this chord and carried across lines and sections until the next change. Preserve order at equal at offsets."
                               },
                               "duration": {
                                 "type": "number",
@@ -1794,6 +1890,188 @@
     "annotations": {
       "readOnlyHint": false,
       "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "drm_get_guitar_score",
+    "description": "Read an owned guitar chart, its current revision and the original ordered chord symbols and key changes.",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "drm_correct_guitar_score",
+    "description": "Correct the complete verified sections of an existing owned guitar chart at its original ID. Get revision using drm_get_guitar_score. Optional chartKey, originalKey and annotations replace only the supplied chart fields. Re-read after a conflict.",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "revision",
+        "sections"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "revision": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$"
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string",
+                "maxLength": 180
+              },
+              "annotations": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 512
+                },
+                "maxItems": 64
+              },
+              "lines": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "lyric",
+                        "instrumental",
+                        "annotation"
+                      ]
+                    },
+                    "text": {
+                      "type": "string",
+                      "maxLength": 2048
+                    },
+                    "chords": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "at": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 2048,
+                            "description": "Zero-based Unicode code point boundary in this exact line, including spaces. End of line is allowed. Keep equal offsets in source order."
+                          },
+                          "symbol": {
+                            "type": "string",
+                            "maxLength": 60,
+                            "minLength": 1,
+                            "description": "Printed letter chord or Arabic/Roman degree symbol. Put only actual chord markings here; keep melody numerals in the line text."
+                          },
+                          "keyChange": {
+                            "type": "string",
+                            "maxLength": 60,
+                            "minLength": 1,
+                            "description": "A single new written major/minor key, effective at this chord and carried across lines and sections until the next change. Preserve order at equal at offsets."
+                          },
+                          "duration": {
+                            "type": "number",
+                            "exclusiveMinimum": 0,
+                            "description": "Quarter-note beats only when stated on the chart."
+                          }
+                        },
+                        "required": [
+                          "at",
+                          "symbol"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "maxItems": 16000
+                    },
+                    "annotations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "at": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 2048,
+                            "description": "Zero-based Unicode code point boundary in this exact line, including spaces. End of line is allowed. Keep equal offsets in source order."
+                          },
+                          "text": {
+                            "type": "string",
+                            "maxLength": 512
+                          }
+                        },
+                        "required": [
+                          "at",
+                          "text"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "maxItems": 64
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "text",
+                    "chords"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 2048
+              }
+            },
+            "required": [
+              "lines"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 128,
+          "minItems": 1
+        },
+        "chartKey": {
+          "type": "string",
+          "maxLength": 60,
+          "description": "Key of the written chord shapes, as printed."
+        },
+        "originalKey": {
+          "type": "string",
+          "maxLength": 60,
+          "description": "Original sounding key, as printed."
+        },
+        "annotations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "maxItems": 64
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
       "openWorldHint": false
     }
   },
