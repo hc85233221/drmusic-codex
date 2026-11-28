@@ -121,9 +121,9 @@ async function handle(message) {
           ? params.protocolVersion
           : "2025-11-25",
         capabilities: { tools: {} },
-        serverInfo: { name: "DrMusic", version: "1.8.2" },
+        serverInfo: { name: "DrMusic", version: "1.9.0" },
         instructions:
-          "Use drm_connect to pair. For piano transcription use drmusic-score. For printable two-hand numbered notation or saving a private numbered score use drmusic-piano-study. For drum notation and .drmd use drmusic-drum-score. For guitar chord sheets and .drmg use drmusic-guitar-score and the guitar tools. Import an existing .drm using drm_import_package with the complete trimmed UTF-8 package.",
+          "Use drm_connect to pair. For piano transcription use drmusic-score. For printable two-hand numbered notation or saving a private numbered score use drmusic-piano-study. For drum notation and .drmd use drmusic-drum-score. For guitar chord sheets and .drmg use drmusic-guitar-score and the guitar tools. Use drm_import_exchange with the full exchange URL or a DRMX1. file to import a friend’s score into the paired account. Use drm_import_package for an account-bound piano file starting with DRM1.",
       },
     });
   }
