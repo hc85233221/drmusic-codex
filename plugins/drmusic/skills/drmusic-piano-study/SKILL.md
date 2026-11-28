@@ -7,6 +7,10 @@ description: 把 DrMusic 雙手鋼琴譜轉成分行的傳統首調數字簡譜�
 
 使用指定的鋼琴譜。原曲連結的 `score` 參數是曲目 ID；只有曲名時以 `drm_list_scores` 找到來源鋼琴譜。同名且編曲不同時，先辨明版本。只有譜照或 PDF 時，先依 `drmusic-score` 轉錄雙手音符。
 
+## 朋友分享的樂譜
+
+使用者要把朋友分享的譜匯入自己的曲庫時，以接收者的 DrMusic 連線呼叫 `drm_import_exchange({url})`，傳入完整的 AI 交換連結。收到 .drm 檔先看檔首；DRMX1. 是可跨帳號匯入的交換檔。觀看連結與原圖另有用途，詳見[分享連結與檔案辨識](../drmusic-score/references/exchange.md)。
+
 ## 製作可跟唱的簡譜
 
 從原稿抄錄和弦記號、歌詞及其在小節內的起點。和弦寫在 `chords: [{start,symbol}]`，歌詞寫在 `lyrics: [{start,text,verse?}]`。兩者的 `start` 均從小節開頭以四分音符為 1 計算，例如 4/4 拍的第二拍後半為 1.5。保留斜線低音、原字、空格與標點，多段歌詞用從 1 起算的 `verse` 對齊同一旋律。原稿缺詞、缺和弦，或落點無法辨讀時，省略相應項目。
