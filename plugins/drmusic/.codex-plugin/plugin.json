@@ -1,6 +1,6 @@
 {
   "name": "drmusic",
-  "version": "1.8.2",
+  "version": "1.9.0",
   "description": "匯入鋼琴譜、吉他譜與鼓譜，將鋼琴譜轉成雙手簡譜，存入私人曲庫或下載列印。",
   "homepage": "https://drmusic.rockdawn.chatgpt.site",
   "author": {
@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "DrMusic",
     "shortDescription": "匯入鋼琴譜、吉他譜與鼓譜，把雙手簡譜存入曲庫或列印",
-    "longDescription": "匯入鋼琴譜、吉他和弦譜與爵士鼓譜，製作帳號專用樂譜檔。曲庫內的鋼琴譜可另存為私人簡譜，依原稿拍位讀取和弦與歌詞，或切換完整雙手下載列印。",
+    "longDescription": "匯入鋼琴譜、吉他和弦譜與爵士鼓譜，製作帳號專用樂譜檔，或使用朋友的交換連結將數位譜存到自己的曲庫。曲庫內的鋼琴譜可另存為私人簡譜，依原稿拍位讀取和弦與歌詞，或切換完整雙手下載列印。",
     "developerName": "DrMusic",
     "category": "Education & Research",
     "capabilities": [
