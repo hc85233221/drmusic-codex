@@ -1,6 +1,6 @@
 # DrMusic
 
-外掛 1.8.2 包含四個 Skill。鋼琴譜用 `drmusic-score` 轉錄雙手音符，使用 .drm 檔。吉他和弦歌詞譜用 `drmusic-guitar-score`，保留和弦與歌詞位置、調性及段落，使用 .drmg 檔。爵士鼓譜用 `drmusic-drum-score` 辨讀鼓件與節奏，使用 .drmd 檔。三種專用檔都由 DrMusic 簽發，匯入時須使用原帳號。執行本機橋接器需要 Node.js 20 以上。
+外掛 1.9.0 包含四個 Skill。鋼琴譜用 `drmusic-score` 轉錄雙手音符，使用 .drm 檔。吉他和弦歌詞譜用 `drmusic-guitar-score`，保留和弦與歌詞位置、調性及段落，使用 .drmg 檔。爵士鼓譜用 `drmusic-drum-score` 辨讀鼓件與節奏，使用 .drmd 檔。三種專用檔都由 DrMusic 簽發，匯入時須使用原帳號。執行本機橋接器需要 Node.js 20 以上。
 
 ## 安裝到 Codex
 
@@ -20,6 +20,10 @@
 
 舊版曾隨附 `drmusic-piano-study/scripts/advice.mjs`。只在已確認屬於 DrMusic 的安裝目錄，核對此檔 SHA-256。若為官方 1.3.1 的 `7c96bd458da3f126225eb4ca432b7f63aed9c3d0db32bb71fd42a6247be56dca` 或 1.3.0 的 `056efcd59e465d79d0e9af161d48bd642da71d07a72b5268128acce464f7a8f4`，移除該檔。若內容有自訂，先將該檔備份到 Skills 目錄外，保留其他個人檔案。開新對話確認列出的工具包含 `drm_create_numbered_score`、`drm_add_piano_notation` 與 `drm_store_private_attachment`。
 
+## 匯入朋友分享的譜
+
+先用正式站提供的登入方式開啟自己的曲庫。使用外部 AI 時讓 drm_connect 配對到這個網站會員，確認配對頁顯示正確帳號。內建 ChatGPT／Sites 工具沿用當前站台身分。接著貼上朋友從曲目頁複製的「給朋友 AI 匯入」連結，說「把這份譜存到我的曲庫」。AI 直接以連結呼叫 drm_import_exchange 並交付你的副本連結。也可附上開頭為 DRMX1. 的交換 .drm 檔。四種譜都可交換。原有觀看連結用來開譜；需要副本時，請朋友提供 AI 交換連結。原圖、PDF 和私人練習資料留在曲主帳號。
+
 ## 鋼琴轉雙手簡譜
 
 在 Codex 輸入 `$drmusic:drmusic-piano-study`，或在 Claude Code 輸入 `/drmusic-piano-study`，並附上自己的鋼琴譜連結。
@@ -37,7 +41,7 @@
 
 ## 使用吉他譜
 
-附上吉他譜並說「保留原調、和弦對位及段落，製作吉他檔並匯入我的樂譜室」。要匯入現成吉他檔可直接附上 .drmg。可同時附上對應的 YouTube 影片網址。AI 自行尋找影片時會核對曲名與演出者，沒有可靠來源仍可匯入，曲主可稍後補上。單獨要求製檔時，AI 可以先交付檔案，日後再匯入。
+同頁混有方框和弦與旋律簡譜時，Skill 會按版面分讀，依譜面調與行內轉調換算框內級數，保留斜線低音。附上吉他譜並說「保留原調、和弦對位及段落，製作吉他檔並匯入我的樂譜室」。要匯入現成吉他檔可直接附上 .drmg。可同時附上對應的 YouTube 影片網址。AI 自行尋找影片時會核對曲名與演出者，沒有可靠來源仍可匯入，曲主可稍後補上。單獨要求製檔時，AI 可以先交付檔案，日後再匯入。
 
 曲主可用 `drm_set_guitar_video` 傳入曲目 ID 與已確認的影片網址。
 
