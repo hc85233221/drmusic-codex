@@ -121,9 +121,9 @@ async function handle(message) {
           ? params.protocolVersion
           : "2025-11-25",
         capabilities: { tools: {} },
-        serverInfo: { name: "DrMusic", version: "1.9.0" },
+        serverInfo: { name: "DrMusic", version: "1.9.1" },
         instructions:
-          "Use drm_connect to pair. For piano transcription use drmusic-score. For printable two-hand numbered notation or saving a private numbered score use drmusic-piano-study. For drum notation and .drmd use drmusic-drum-score. For guitar chord sheets and .drmg use drmusic-guitar-score and the guitar tools. Use drm_import_exchange with the full exchange URL or a DRMX1. file to import a friend’s score into the paired account. Use drm_import_package for an account-bound piano file starting with DRM1.",
+          "Use drm_connect to pair. For piano transcription use drmusic-score. For printable two-hand numbered notation or saving a private numbered score use drmusic-piano-study. For drum notation and .drmd use drmusic-drum-score. For guitar chord sheets and .drmg use drmusic-guitar-score and the guitar tools. If creating an exchange requires confirmation, give the owner their private confirmation link and wait. Only the owner may accept the rights and takedown notice on the site. Afterward retrieve the exchange link for sharing. Use drm_import_exchange with the full exchange URL or a DRMX1. file to import a friend’s score into the paired account. Use drm_import_package for an account-bound piano file starting with DRM1.",
       },
     });
   }
