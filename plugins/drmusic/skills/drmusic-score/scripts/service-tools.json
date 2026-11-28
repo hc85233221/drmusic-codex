@@ -1,7 +1,7 @@
 [
   {
     "name": "drm_create_exchange_link",
-    "description": "For the signed-in owner, create or retrieve a bearer download URL for a portable musical snapshot of this one score. Anyone with access to the site and link can download the .drm or import it into their own library. Return the URL only when the user requests sharing.",
+    "description": "For the signed-in owner, create or retrieve a bearer download URL for a portable musical snapshot of this one score. Anyone with access to the site and link can download the .drm or import it into their own library. An unconfirmed new link returns requiresConfirmation and confirmationUrl without url. Give that private confirmation page only to the owner, wait for them to confirm in the website, then retry. Never approve on their behalf or share confirmationUrl with recipients.",
     "inputSchema": {
       "type": "object",
       "additionalProperties": false,
