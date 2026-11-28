@@ -23,7 +23,7 @@ type GuitarScore = {
     lines: {
       type: 'lyric' | 'instrumental' | 'annotation'
       text: string
-      chords: { at: number, symbol: string, duration?: number }[]
+      chords: { at: number, symbol: string, duration?: number, keyChange?: string }[]
       annotations?: { at: number, text: string }[]
     }[]
   }[]
@@ -54,6 +54,26 @@ type GuitarScore = {
   }]
 }
 ```
+
+## 框內級數與換調
+
+將原稿和弦原樣存成 `chords[].symbol`；可用字母、羅馬數字或方框阿拉伯數字。旋律、休止與其他文字留在原行的 text 或 annotations。讀取全曲 `chartKey`，缺省時僅在沒有非零 Capo 且 originalKey 是單一明確的調時借用。局部換調在**第一個已採用新調的和弦**填 `keyChange`，延續至下一處換調，跨行跨段均沿用。轉調提示位於歌詞或休止時可加行內註記定位。建議男調、女調另入 annotations。
+
+自編例：初始 C 大調，框內依次是 `1`、`5/7`、`1`，從第二框開始改用 D 大調。對應普通和弦為 C、A/C#、D；前兩框之間若有旋律 3、2、1，只按原稿保存於旋律文字。第二框示意為 `{"at":4,"symbol":"5/7","keyChange":"D"}`。即使兩框的 at 相同，也按陣列順序套用換調。只有來源能確認的時值才填 duration。
+
+大調沿大音階定位，小調沿自然小音階定位。阿拉伯數字裸級數代表以該音為根音的大三和弦，小三和弦用 m；羅馬級數保留大小寫。兩個相連的數字可能是根音與延伸音，如 `57sus`；斜線後的低音也要依同一調的音階計算。以下各列為獨立自編例。
+
+| 框內 | 生效調 | 普通和弦 | 讀法 |
+| --- | --- | --- | --- |
+| 5m/7b | F | Cm/Eb | 第五級的小三和弦，低音是第七級 E 再降半音 |
+| 6bM7 | G | Ebmaj7 | 第六級 E 降半音，保留大七和弦 |
+| 57sus | D | A7sus4 | 第五級的屬七掛四 |
+| 4#Ø | E | A#m7b5 | 第四級 A 再升半音，保留半減七 |
+| 3# | D | F## | 第三級 F# 再升半音；保留升三級的拼法 |
+
+在 Skill 目錄執行 `node scripts/read-chords.mjs "/path/to/score.json"`，列出每個已轉錄和弦所在段、行、字位、生效調、原符號、字母和弦與級數。工具使用和網站相同的轉換程式，只讀取 chords 陣列。遇到 null，可按輸出的座標回看符號或確認按法調；譜面的 symbol 繼續保留原文。
+
+曲主要校訂已存在的吉他譜時，用 `drm_get_guitar_score({id})` 讀取正確曲目及其目前的 revision，呼叫 `drm_correct_guitar_score({id,revision,sections,chartKey?,originalKey?,annotations?})`，sections 帶完整核對後的段落。讀回同一 ID 比對和弦數、順序、調性與歌詞對位。遇到 409 須重新讀回版本。
 
 ## 工具與讀回
 
